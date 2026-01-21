@@ -1,8 +1,12 @@
 import Link from 'next/link'
 import { CheckSquare } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { auth } from '@/lib/auth'
+import { logout } from '@/actions/auth'
 
-export function Header() {
+export async function Header() {
+  const session = await auth()
+
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
@@ -11,8 +15,22 @@ export function Header() {
           <span className="text-xl font-bold">ToDoアプリ</span>
         </Link>
         <div className="flex items-center gap-2">
-          <Button variant="default">新規登録</Button>
-          <Button variant="outline">ログイン</Button>
+          {session ? (
+            <form action={logout}>
+              <Button type="submit" variant="outline">
+                ログアウト
+              </Button>
+            </form>
+          ) : (
+            <>
+              <Button variant="default" asChild>
+                <Link href="/signup">新規登録</Link>
+              </Button>
+              <Button variant="outline" asChild>
+                <Link href="/login">ログイン</Link>
+              </Button>
+            </>
+          )}
         </div>
       </div>
     </header>

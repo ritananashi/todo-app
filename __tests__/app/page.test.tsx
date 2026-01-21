@@ -19,16 +19,16 @@ describe('Home Page', () => {
     expect(screen.getByText('タスク管理を始める')).toBeInTheDocument()
   })
 
-  it('should render 新規登録 button', () => {
+  it('should render 新規登録 link', () => {
     render(<Home />)
-    const button = screen.getByRole('button', { name: '新規登録' })
-    expect(button).toBeInTheDocument()
+    const link = screen.getByRole('link', { name: '新規登録' })
+    expect(link).toHaveAttribute('href', '/signup')
   })
 
-  it('should render ログイン button', () => {
+  it('should render ログイン link', () => {
     render(<Home />)
-    const button = screen.getByRole('button', { name: 'ログイン' })
-    expect(button).toBeInTheDocument()
+    const link = screen.getByRole('link', { name: 'ログイン' })
+    expect(link).toHaveAttribute('href', '/login')
   })
 
   it('should have center alignment classes on main element', () => {
