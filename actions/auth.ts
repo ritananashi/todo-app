@@ -1,22 +1,72 @@
 'use server'
 
-import type { SignupInput, LoginInput } from '@/lib/validations/auth'
+import bcrypt from 'bcryptjs'
+import { redirect } from 'next/navigation'
+import { prisma } from '@/lib/prisma'
+import { signIn, signOut } from '@/lib/auth'
+import { signupSchema, loginSchema, type SignupInput, type LoginInput } from '@/lib/validations/auth'
 
 export type AuthResult = {
   success: boolean
   error?: string
 }
 
-export async function signup(_data: SignupInput): Promise<AuthResult> {
-  // Will be implemented
-  return { success: false, error: 'Not implemented' }
+export async function signup(data: SignupInput): Promise<AuthResult> {
+  const parsed = signupSchema.safeParse(data)
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0].message }
+  }
+
+  const { email, password } = parsed.data
+
+  const existingUser = await prisma.user.findUnique({
+    where: { email },
+  })
+
+  if (existingUser) {
+    return { success: false, error: 'このメールアドレスは既に登録されています' }
+  }
+
+  const hashedPassword = await bcrypt.hash(password, 12)
+
+  await prisma.user.create({
+    data: {
+      email,
+      password: hashedPassword,
+    },
+  })
+
+  await signIn('credentials', {
+    email,
+    password,
+    redirect: false,
+  })
+
+  redirect('/todos')
 }
 
-export async function login(_data: LoginInput): Promise<AuthResult> {
-  // Will be implemented
-  return { success: false, error: 'Not implemented' }
+export async function login(data: LoginInput): Promise<AuthResult> {
+  const parsed = loginSchema.safeParse(data)
+  if (!parsed.success) {
+    return { success: false, error: parsed.error.issues[0].message }
+  }
+
+  const { email, password } = parsed.data
+
+  try {
+    await signIn('credentials', {
+      email,
+      password,
+      redirect: false,
+    })
+  } catch {
+    return { success: false, error: 'メールアドレスまたはパスワードが正しくありません' }
+  }
+
+  redirect('/todos')
 }
 
 export async function logout(): Promise<void> {
-  // Will be implemented
+  await signOut({ redirect: false })
+  redirect('/login')
 }
