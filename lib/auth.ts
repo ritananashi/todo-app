@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma'
 import { loginSchema } from '@/lib/validations/auth'
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
+  secret: process.env.AUTH_SECRET,
   session: { strategy: 'jwt' },
   pages: {
     signIn: '/login',

@@ -1,12 +1,13 @@
 import { NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
+import { getToken } from 'next-auth/jwt'
+import type { NextRequest } from 'next/server'
 
 const protectedRoutes = ['/todos']
 const authRoutes = ['/login', '/signup']
 
-export default auth((req) => {
+export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl
-  const session = req.auth
+  const token = await getToken({ req, secret: process.env.AUTH_SECRET })
 
   // Check if the route is protected
   const isProtectedRoute = protectedRoutes.some((route) =>
@@ -17,19 +18,17 @@ export default auth((req) => {
   const isAuthRoute = authRoutes.some((route) => pathname.startsWith(route))
 
   // Redirect unauthenticated users from protected routes to login
-  if (isProtectedRoute && !session) {
-    const loginUrl = new URL('/login', req.url)
-    return NextResponse.redirect(loginUrl)
+  if (isProtectedRoute && !token) {
+    return NextResponse.redirect(new URL('/login', req.url))
   }
 
   // Redirect authenticated users from auth routes to todos
-  if (isAuthRoute && session) {
-    const todosUrl = new URL('/todos', req.url)
-    return NextResponse.redirect(todosUrl)
+  if (isAuthRoute && token) {
+    return NextResponse.redirect(new URL('/todos', req.url))
   }
 
   return NextResponse.next()
-})
+}
 
 export const config = {
   matcher: ['/todos/:path*', '/login', '/signup'],
