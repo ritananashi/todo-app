@@ -1,3 +1,4 @@
+import Link from 'next/link'
 import { CheckSquare } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
@@ -12,8 +13,12 @@ export default function Home() {
         <p className="text-lg text-muted-foreground">タスク管理を始める</p>
       </div>
       <div className="flex items-center gap-4">
-        <Button variant="default" size="lg">新規登録</Button>
-        <Button variant="outline" size="lg">ログイン</Button>
+        <Button variant="default" size="lg" asChild>
+          <Link href="/signup">新規登録</Link>
+        </Button>
+        <Button variant="outline" size="lg" asChild>
+          <Link href="/login">ログイン</Link>
+        </Button>
       </div>
     </main>
   )
