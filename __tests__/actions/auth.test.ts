@@ -1,4 +1,4 @@
-import { signup, login } from '@/actions/auth'
+import { signup, login, logout } from '@/actions/auth'
 
 // Mock modules
 jest.mock('@/lib/prisma', () => ({
@@ -17,6 +17,7 @@ jest.mock('bcryptjs', () => ({
 
 jest.mock('@/lib/auth', () => ({
   signIn: jest.fn(),
+  signOut: jest.fn(),
 }))
 
 // Mock next/navigation redirect
@@ -29,11 +30,12 @@ jest.mock('next/navigation', () => ({
 // Import mocks after jest.mock
 import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
-import { signIn } from '@/lib/auth'
+import { signIn, signOut } from '@/lib/auth'
 
 const mockPrisma = prisma as jest.Mocked<typeof prisma>
 const mockBcrypt = bcrypt as jest.Mocked<typeof bcrypt>
 const mockSignIn = signIn as jest.MockedFunction<typeof signIn>
+const mockSignOut = signOut as jest.MockedFunction<typeof signOut>
 
 describe('signup action', () => {
   beforeEach(() => {
@@ -155,5 +157,19 @@ describe('login action', () => {
     expect(result.success).toBe(false)
     expect(result.error).toBeDefined()
     expect(mockSignIn).not.toHaveBeenCalled()
+  })
+})
+
+describe('logout action', () => {
+  beforeEach(() => {
+    jest.clearAllMocks()
+  })
+
+  it('should sign out and redirect to login', async () => {
+    mockSignOut.mockResolvedValue(undefined)
+
+    await expect(logout()).rejects.toThrow('REDIRECT:/login')
+
+    expect(mockSignOut).toHaveBeenCalledWith({ redirect: false })
   })
 })
