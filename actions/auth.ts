@@ -36,11 +36,15 @@ export async function signup(data: SignupInput): Promise<AuthResult> {
     },
   })
 
-  await signIn('credentials', {
-    email,
-    password,
-    redirect: false,
-  })
+  try {
+    await signIn('credentials', {
+      email,
+      password,
+      redirect: false,
+    })
+  } catch {
+    return { success: false, error: 'ログインに失敗しました。再度お試しください。' }
+  }
 
   redirect('/todos')
 }
