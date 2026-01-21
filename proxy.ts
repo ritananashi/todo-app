@@ -5,7 +5,7 @@ import type { NextRequest } from 'next/server'
 const protectedRoutes = ['/todos']
 const authRoutes = ['/login', '/signup']
 
-export async function middleware(req: NextRequest) {
+export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl
   const token = await getToken({ req, secret: process.env.AUTH_SECRET })
 
