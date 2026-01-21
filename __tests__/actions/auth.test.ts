@@ -32,7 +32,8 @@ import { prisma } from '@/lib/prisma'
 import bcrypt from 'bcryptjs'
 import { signIn, signOut } from '@/lib/auth'
 
-const mockPrisma = prisma as jest.Mocked<typeof prisma>
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const mockPrisma = prisma as any
 const mockBcrypt = bcrypt as jest.Mocked<typeof bcrypt>
 const mockSignIn = signIn as jest.MockedFunction<typeof signIn>
 const mockSignOut = signOut as jest.MockedFunction<typeof signOut>
