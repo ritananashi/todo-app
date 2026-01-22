@@ -28,17 +28,22 @@ export async function createTodo(data: CreateTodoInput): Promise<CreateTodoResul
 
   const { title, memo } = parsed.data
 
-  const todo = await prisma.todo.create({
-    data: {
-      userId: session.user.id,
-      title,
-      memo,
-    },
-  })
+  try {
+    const todo = await prisma.todo.create({
+      data: {
+        userId: session.user.id,
+        title,
+        memo,
+      },
+    })
 
-  revalidatePath('/todos')
+    revalidatePath('/todos')
 
-  return { success: true, todo }
+    return { success: true, todo }
+  } catch (error) {
+    console.error('Failed to create todo:', error)
+    return { success: false, error: 'タスクの作成に失敗しました' }
+  }
 }
 
 export async function getTodos(): Promise<GetTodosResult> {
@@ -48,10 +53,15 @@ export async function getTodos(): Promise<GetTodosResult> {
     return { success: false, error: '認証が必要です' }
   }
 
-  const todos = await prisma.todo.findMany({
-    where: { userId: session.user.id },
-    orderBy: { createdAt: 'desc' },
-  })
+  try {
+    const todos = await prisma.todo.findMany({
+      where: { userId: session.user.id },
+      orderBy: { createdAt: 'desc' },
+    })
 
-  return { success: true, todos }
+    return { success: true, todos }
+  } catch (error) {
+    console.error('Failed to fetch todos:', error)
+    return { success: false, error: 'タスクの取得に失敗しました' }
+  }
 }

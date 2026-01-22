@@ -1,14 +1,5 @@
+import type { TodoModel as Todo } from '@/src/generated/prisma/models'
 import { TodoItem } from './TodoItem'
-
-interface Todo {
-  id: string
-  userId: string
-  title: string
-  memo: string | null
-  isCompleted: boolean
-  createdAt: Date
-  updatedAt: Date
-}
 
 interface TodoListProps {
   todos: Todo[]
