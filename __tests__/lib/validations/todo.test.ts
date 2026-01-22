@@ -1,4 +1,4 @@
-import { createTodoSchema, type CreateTodoInput } from '@/lib/validations/todo'
+import { createTodoSchema } from '@/lib/validations/todo'
 
 describe('createTodoSchema', () => {
   it('should validate correct todo data', () => {
