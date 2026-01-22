@@ -352,8 +352,8 @@ model Todo {
 ```bash
 DATABASE_URL="postgresql://..."    # Prisma接続用
 DIRECT_URL="postgresql://..."      # マイグレーション用
-NEXTAUTH_SECRET="..."              # NextAuth用
-NEXTAUTH_URL="http://localhost:3000"
+AUTH_SECRET="..."                  # Auth.js用
+AUTH_URL="http://localhost:3000"   # Auth.js用（本番はhttpsのURL）
 ```
 
 ## PRマージ前チェックリスト

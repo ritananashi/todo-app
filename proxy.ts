@@ -7,7 +7,11 @@ const authRoutes = ['/login', '/signup']
 
 export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl
-  const token = await getToken({ req, secret: process.env.AUTH_SECRET })
+  const secret = process.env.AUTH_SECRET
+  if (!secret) {
+    throw new Error('AUTH_SECRET environment variable is not set')
+  }
+  const token = await getToken({ req, secret })
 
   // Check if the route is protected
   const isProtectedRoute = protectedRoutes.some((route) =>
