@@ -15,4 +15,5 @@ export const createTodoSchema = z.object({
     .transform((val) => val || undefined),
 })
 
-export type CreateTodoInput = z.infer<typeof createTodoSchema>
+export type CreateTodoInput = z.input<typeof createTodoSchema>
+export type CreateTodoOutput = z.output<typeof createTodoSchema>
