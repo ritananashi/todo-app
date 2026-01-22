@@ -7,7 +7,7 @@ const authRoutes = ['/login', '/signup']
 
 export async function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl
-  const token = await getToken({ req, secret: process.env.AUTH_SECRET })
+  const token = await getToken({ req })
 
   // Check if the route is protected
   const isProtectedRoute = protectedRoutes.some((route) =>

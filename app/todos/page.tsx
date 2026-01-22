@@ -4,6 +4,8 @@ import { getTodos } from '@/actions/todo'
 import { TodoCreateButton } from '@/components/todo/TodoCreateButton'
 import { TodoList } from '@/components/todo/TodoList'
 
+export const dynamic = 'force-dynamic'
+
 export default async function TodosPage() {
   const session = await auth()
 
