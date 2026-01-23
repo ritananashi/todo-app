@@ -44,12 +44,20 @@ export function TodoDeleteDialog({
   }
 
   const handleCancel = () => {
-    setError(null)
     onOpenChange(false)
   }
 
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (nextOpen) {
+      // Reset state when dialog opens
+      setError(null)
+      setIsDeleting(false)
+    }
+    onOpenChange(nextOpen)
+  }
+
   return (
-    <AlertDialog open={open} onOpenChange={onOpenChange}>
+    <AlertDialog open={open} onOpenChange={handleOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>タスクを削除</AlertDialogTitle>

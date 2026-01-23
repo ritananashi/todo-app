@@ -59,7 +59,7 @@ describe('createTodo action', () => {
       data: {
         userId: 'user-1',
         title: 'タスク1',
-        memo: undefined,
+        memo: null, // undefined from zod is converted to null for Prisma
       },
     })
     expect(mockRevalidatePath).toHaveBeenCalledWith('/todos')

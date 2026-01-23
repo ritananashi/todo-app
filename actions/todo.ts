@@ -50,7 +50,7 @@ export async function createTodo(data: CreateTodoInput): Promise<CreateTodoResul
       data: {
         userId: session.user.id,
         title,
-        memo,
+        memo: memo ?? null,
       },
     })
 
@@ -111,7 +111,7 @@ export async function updateTodo(data: UpdateTodoInput): Promise<UpdateTodoResul
 
     const todo = await prisma.todo.update({
       where: { id },
-      data: { title, memo, isCompleted },
+      data: { title, memo: memo ?? null, isCompleted },
     })
 
     revalidatePath('/todos')

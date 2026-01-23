@@ -14,7 +14,7 @@ const memoField = z
   .string()
   .max(1000, 'メモは1000文字以内で入力してください')
   .optional()
-  .transform((val) => (val?.trim() || undefined))
+  .transform((val) => val?.trim() || undefined)
 
 export const createTodoSchema = z.object({
   title: titleField,
