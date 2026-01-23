@@ -16,11 +16,21 @@ export async function Header() {
         </Link>
         <div className="flex items-center gap-2">
           {session ? (
-            <form action={logout}>
-              <Button type="submit" variant="outline">
-                ログアウト
+            <>
+              {session.user?.email && (
+                <span className="hidden text-sm text-muted-foreground sm:block">
+                  {session.user.email}
+                </span>
+              )}
+              <Button variant="ghost" asChild>
+                <Link href="/todos">ToDo一覧</Link>
               </Button>
-            </form>
+              <form action={logout}>
+                <Button type="submit" variant="outline">
+                  ログアウト
+                </Button>
+              </form>
+            </>
           ) : (
             <>
               <Button variant="default" asChild>
