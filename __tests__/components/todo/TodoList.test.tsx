@@ -1,6 +1,13 @@
 import { render, screen } from '@testing-library/react'
 import { TodoList } from '@/components/todo/TodoList'
 
+// Mock the actions used by TodoItem
+jest.mock('@/actions/todo', () => ({
+  toggleTodoComplete: jest.fn(),
+  updateTodo: jest.fn(),
+  deleteTodo: jest.fn(),
+}))
+
 describe('TodoList', () => {
   const mockTodos = [
     {

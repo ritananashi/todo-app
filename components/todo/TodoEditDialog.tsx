@@ -59,9 +59,16 @@ export function TodoEditDialog({ open, onOpenChange, todo }: TodoEditDialogProps
         memo: todo.memo ?? '',
         isCompleted: todo.isCompleted,
       })
-      setServerError(null)
     }
   }, [open, todo, form])
+
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (nextOpen) {
+      // Reset error when dialog opens
+      setServerError(null)
+    }
+    onOpenChange(nextOpen)
+  }
 
   const onSubmit = async (data: UpdateTodoInput) => {
     setServerError(null)
@@ -78,7 +85,7 @@ export function TodoEditDialog({ open, onOpenChange, todo }: TodoEditDialogProps
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>タスクを編集</DialogTitle>

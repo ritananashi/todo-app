@@ -168,6 +168,7 @@ describe('updateTodoSchema', () => {
   })
 
   it('should reject missing id', () => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { id: _id, ...dataWithoutId } = validData
     const result = updateTodoSchema.safeParse(dataWithoutId)
     expect(result.success).toBe(false)
