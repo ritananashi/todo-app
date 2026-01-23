@@ -98,9 +98,9 @@ describe('TodoFilter', () => {
     const completedButton = screen.getByRole('button', { name: /^完了 \(/ })
 
     // "all" is active
-    expect(allButton).toHaveAttribute('data-active', 'true')
-    expect(incompleteButton).toHaveAttribute('data-active', 'false')
-    expect(completedButton).toHaveAttribute('data-active', 'false')
+    expect(allButton).toHaveAttribute('aria-pressed', 'true')
+    expect(incompleteButton).toHaveAttribute('aria-pressed', 'false')
+    expect(completedButton).toHaveAttribute('aria-pressed', 'false')
 
     // Change to "incomplete"
     rerender(
@@ -111,9 +111,9 @@ describe('TodoFilter', () => {
       />
     )
 
-    expect(allButton).toHaveAttribute('data-active', 'false')
-    expect(incompleteButton).toHaveAttribute('data-active', 'true')
-    expect(completedButton).toHaveAttribute('data-active', 'false')
+    expect(allButton).toHaveAttribute('aria-pressed', 'false')
+    expect(incompleteButton).toHaveAttribute('aria-pressed', 'true')
+    expect(completedButton).toHaveAttribute('aria-pressed', 'false')
 
     // Change to "completed"
     rerender(
@@ -124,8 +124,8 @@ describe('TodoFilter', () => {
       />
     )
 
-    expect(allButton).toHaveAttribute('data-active', 'false')
-    expect(incompleteButton).toHaveAttribute('data-active', 'false')
-    expect(completedButton).toHaveAttribute('data-active', 'true')
+    expect(allButton).toHaveAttribute('aria-pressed', 'false')
+    expect(incompleteButton).toHaveAttribute('aria-pressed', 'false')
+    expect(completedButton).toHaveAttribute('aria-pressed', 'true')
   })
 })

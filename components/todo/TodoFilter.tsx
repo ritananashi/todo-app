@@ -35,7 +35,7 @@ export function TodoFilter({
             variant={isActive ? 'default' : 'outline'}
             size="sm"
             onClick={() => onFilterChange(type)}
-            data-active={isActive}
+            aria-pressed={isActive}
           >
             {label} ({counts[type]})
           </Button>
