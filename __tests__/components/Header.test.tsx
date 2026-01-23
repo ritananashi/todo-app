@@ -83,6 +83,36 @@ describe('Header', () => {
       render(await Header())
       expect(screen.queryByRole('link', { name: 'ログイン' })).not.toBeInTheDocument()
     })
+
+    it('should not render email when user email is not available', async () => {
+      mockAuth.mockResolvedValue({
+        user: {
+          id: 'user-1',
+          name: 'Test User',
+        },
+      })
+      render(await Header())
+      const emailElements = document.querySelectorAll('.text-muted-foreground')
+      expect(emailElements.length).toBe(0)
+    })
+
+    it('should display user email address', async () => {
+      render(await Header())
+      const emailElement = screen.getByText('test@example.com')
+      expect(emailElement).toBeInTheDocument()
+    })
+
+    it('should hide email on mobile with hidden sm:block classes', async () => {
+      render(await Header())
+      const emailElement = screen.getByText('test@example.com')
+      expect(emailElement).toHaveClass('hidden', 'sm:block')
+    })
+
+    it('should render ToDo一覧 link', async () => {
+      render(await Header())
+      const link = screen.getByRole('link', { name: 'ToDo一覧' })
+      expect(link).toHaveAttribute('href', '/todos')
+    })
   })
 
   it('should have sticky class for fixed positioning', async () => {
