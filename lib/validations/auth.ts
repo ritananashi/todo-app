@@ -5,7 +5,11 @@ export const signupSchema = z
     email: z.string().email('有効なメールアドレスを入力してください'),
     password: z
       .string()
-      .min(8, 'パスワードは8文字以上で入力してください'),
+      .min(8, 'パスワードは8文字以上で入力してください')
+      .regex(
+        /^(?=.*[a-zA-Z])(?=.*\d)/,
+        'パスワードには英字と数字を含めてください'
+      ),
     confirmPassword: z.string(),
   })
   .refine((data) => data.password === data.confirmPassword, {
