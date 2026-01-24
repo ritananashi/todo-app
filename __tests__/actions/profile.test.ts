@@ -27,7 +27,8 @@ import { auth } from '@/lib/auth'
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const mockPrisma = prisma as any
 const mockBcrypt = bcrypt as jest.Mocked<typeof bcrypt>
-const mockAuth = auth as jest.MockedFunction<typeof auth>
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const mockAuth = auth as any
 
 describe('updateProfile action', () => {
   beforeEach(() => {

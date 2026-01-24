@@ -7,9 +7,13 @@ jest.mock('@/lib/auth', () => ({
   auth: () => mockAuth(),
 }))
 
-// Mock the logout action
-jest.mock('@/actions/auth', () => ({
-  logout: jest.fn(),
+// Mock the UserMenu component
+jest.mock('@/components/UserMenu', () => ({
+  UserMenu: ({ name, email }: { name: string | null; email: string }) => (
+    <div data-testid="user-menu">
+      <span data-testid="user-display-name">{name || email}</span>
+    </div>
+  ),
 }))
 
 describe('Header', () => {
@@ -51,9 +55,9 @@ describe('Header', () => {
       expect(link).toHaveAttribute('href', '/login')
     })
 
-    it('should not render logout button', async () => {
+    it('should not render UserMenu', async () => {
       render(await Header())
-      expect(screen.queryByRole('button', { name: 'ログアウト' })).not.toBeInTheDocument()
+      expect(screen.queryByTestId('user-menu')).not.toBeInTheDocument()
     })
   })
 
@@ -68,10 +72,9 @@ describe('Header', () => {
       })
     })
 
-    it('should render logout button', async () => {
+    it('should render UserMenu', async () => {
       render(await Header())
-      const button = screen.getByRole('button', { name: 'ログアウト' })
-      expect(button).toBeInTheDocument()
+      expect(screen.getByTestId('user-menu')).toBeInTheDocument()
     })
 
     it('should not render signup link', async () => {
@@ -84,28 +87,21 @@ describe('Header', () => {
       expect(screen.queryByRole('link', { name: 'ログイン' })).not.toBeInTheDocument()
     })
 
-    it('should not render email when user email is not available', async () => {
+    it('should display user name when available', async () => {
+      render(await Header())
+      expect(screen.getByTestId('user-display-name')).toHaveTextContent('Test User')
+    })
+
+    it('should display email when name is not available', async () => {
       mockAuth.mockResolvedValue({
         user: {
           id: 'user-1',
-          name: 'Test User',
+          email: 'test@example.com',
+          name: null,
         },
       })
       render(await Header())
-      const emailElements = document.querySelectorAll('.text-muted-foreground')
-      expect(emailElements.length).toBe(0)
-    })
-
-    it('should display user email address', async () => {
-      render(await Header())
-      const emailElement = screen.getByText('test@example.com')
-      expect(emailElement).toBeInTheDocument()
-    })
-
-    it('should hide email on mobile with hidden sm:block classes', async () => {
-      render(await Header())
-      const emailElement = screen.getByText('test@example.com')
-      expect(emailElement).toHaveClass('hidden', 'sm:block')
+      expect(screen.getByTestId('user-display-name')).toHaveTextContent('test@example.com')
     })
 
     it('should render ToDo一覧 link', async () => {
