@@ -42,6 +42,18 @@ describe('updateProfileSchema', () => {
       const result = updateProfileSchema.safeParse(input)
       expect(result.success).toBe(true)
     })
+
+    it('emailの前後に空白がある場合、trimされてバリデーションが成功する', () => {
+      const input = {
+        name: 'テストユーザー',
+        email: '  test@example.com  ',
+      }
+      const result = updateProfileSchema.safeParse(input)
+      expect(result.success).toBe(true)
+      if (result.success) {
+        expect(result.data.email).toBe('test@example.com')
+      }
+    })
   })
 
   describe('異常系', () => {
@@ -72,10 +84,10 @@ describe('updateProfileSchema', () => {
 })
 
 describe('normalizeProfileInput', () => {
-  it('emailがtrimされて小文字に変換される', () => {
+  it('emailが小文字に変換される（trimはスキーマで実行済み）', () => {
     const input: UpdateProfileInput = {
       name: 'テストユーザー',
-      email: '  TEST@EXAMPLE.COM  ',
+      email: 'TEST@EXAMPLE.COM',
     }
     const result = normalizeProfileInput(input)
     expect(result.email).toBe('test@example.com')
@@ -117,12 +129,12 @@ describe('normalizeProfileInput', () => {
     expect(result.name).toBeNull()
   })
 
-  it('nameがundefinedの場合、nullに変換される', () => {
+  it('nameがundefinedの場合、undefinedのまま（更新対象から外す）', () => {
     const input: UpdateProfileInput = {
       email: 'test@example.com',
     }
     const result = normalizeProfileInput(input)
-    expect(result.name).toBeNull()
+    expect(result.name).toBeUndefined()
   })
 })
 

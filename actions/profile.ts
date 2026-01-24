@@ -11,14 +11,27 @@ import {
   type ChangePasswordInput,
 } from '@/lib/validations/profile'
 
-// Prisma P2002 error check helper
-function isPrismaUniqueConstraintError(error: unknown): boolean {
-  return (
-    typeof error === 'object' &&
-    error !== null &&
-    'code' in error &&
-    (error as { code: string }).code === 'P2002'
-  )
+// Prisma P2002 error check helper（email制約違反のみを判定）
+function isEmailUniqueConstraintError(error: unknown): boolean {
+  if (
+    typeof error !== 'object' ||
+    error === null ||
+    !('code' in error) ||
+    (error as { code: string }).code !== 'P2002'
+  ) {
+    return false
+  }
+
+  // meta.targetでemailフィールドの制約違反かを確認
+  if ('meta' in error && typeof (error as { meta: unknown }).meta === 'object') {
+    const meta = (error as { meta: { target?: unknown } }).meta
+    if (Array.isArray(meta?.target)) {
+      return meta.target.includes('email')
+    }
+  }
+
+  // targetが取得できない場合はP2002をemail制約として扱う（フォールバック）
+  return true
 }
 
 export type ProfileResult = {
@@ -49,13 +62,19 @@ export async function updateProfile(data: UpdateProfileInput): Promise<ProfileRe
     return { success: false, error: 'このメールアドレスは既に使用されています' }
   }
 
+  // name未指定時は更新対象から外す（既存値を保持）
+  const updateData: { email: string; name?: string | null } = { email }
+  if (name !== undefined) {
+    updateData.name = name
+  }
+
   try {
     await prisma.user.update({
       where: { id: session.user.id },
-      data: { name, email },
+      data: updateData,
     })
   } catch (error) {
-    if (isPrismaUniqueConstraintError(error)) {
+    if (isEmailUniqueConstraintError(error)) {
       return { success: false, error: 'このメールアドレスは既に使用されています' }
     }
     throw error

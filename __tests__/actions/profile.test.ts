@@ -164,6 +164,25 @@ describe('updateProfile action', () => {
     mockPrisma.user.findUnique.mockResolvedValue(null)
     // しかしupdateで一意制約違反が発生（P2002エラー）
     const p2002Error = new Error('Unique constraint failed')
+    Object.assign(p2002Error, { code: 'P2002', meta: { target: ['email'] } })
+    mockPrisma.user.update.mockRejectedValue(p2002Error)
+
+    const result = await updateProfile({
+      name: 'Name',
+      email: 'race-condition@example.com',
+    })
+
+    expect(result.success).toBe(false)
+    expect(result.error).toBe('このメールアドレスは既に使用されています')
+  })
+
+  it('P2002エラーでtarget情報がない場合もエラーメッセージを返す（フォールバック）', async () => {
+    mockAuth.mockResolvedValue({
+      user: { id: 'user-1', email: 'old@example.com', name: 'Name' },
+      expires: new Date().toISOString(),
+    })
+    mockPrisma.user.findUnique.mockResolvedValue(null)
+    const p2002Error = new Error('Unique constraint failed')
     Object.assign(p2002Error, { code: 'P2002' })
     mockPrisma.user.update.mockRejectedValue(p2002Error)
 
@@ -223,6 +242,54 @@ describe('updateProfile action', () => {
     expect(mockPrisma.user.update).toHaveBeenCalledWith({
       where: { id: 'user-1' },
       data: { name: null, email: 'test@example.com' },
+    })
+  })
+
+  it('nameが未指定の場合、既存のnameを保持する（emailのみ更新）', async () => {
+    mockAuth.mockResolvedValue({
+      user: { id: 'user-1', email: 'old@example.com', name: 'Existing Name' },
+      expires: new Date().toISOString(),
+    })
+    mockPrisma.user.findUnique.mockResolvedValue(null)
+    mockPrisma.user.update.mockResolvedValue({
+      id: 'user-1',
+      email: 'new@example.com',
+      name: 'Existing Name',
+    })
+
+    const result = await updateProfile({
+      email: 'new@example.com',
+    })
+
+    expect(result.success).toBe(true)
+    // nameは更新対象に含まれない
+    expect(mockPrisma.user.update).toHaveBeenCalledWith({
+      where: { id: 'user-1' },
+      data: { email: 'new@example.com' },
+    })
+  })
+
+  it('emailの前後に空白がある場合、trimされて保存される', async () => {
+    mockAuth.mockResolvedValue({
+      user: { id: 'user-1', email: 'old@example.com', name: 'Name' },
+      expires: new Date().toISOString(),
+    })
+    mockPrisma.user.findUnique.mockResolvedValue(null)
+    mockPrisma.user.update.mockResolvedValue({
+      id: 'user-1',
+      email: 'test@example.com',
+      name: 'Name',
+    })
+
+    const result = await updateProfile({
+      name: 'Name',
+      email: '  test@example.com  ',
+    })
+
+    expect(result.success).toBe(true)
+    expect(mockPrisma.user.update).toHaveBeenCalledWith({
+      where: { id: 'user-1' },
+      data: { name: 'Name', email: 'test@example.com' },
     })
   })
 })

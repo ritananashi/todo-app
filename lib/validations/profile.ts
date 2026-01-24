@@ -2,18 +2,33 @@ import { z } from 'zod'
 
 export const updateProfileSchema = z.object({
   name: z.string().optional().nullable(),
-  email: z.string().email('有効なメールアドレスを入力してください'),
+  email: z
+    .string()
+    .trim()
+    .email('有効なメールアドレスを入力してください'),
 })
 
 // 正規化用のヘルパー関数（Server Actionで使用）
+// name未指定時はundefinedを返し、更新対象から外せるようにする
 export function normalizeProfileInput(data: UpdateProfileInput): {
-  name: string | null
+  name: string | null | undefined
   email: string
 } {
-  const name = data.name?.trim()
+  // nameが未指定（undefined）の場合はundefinedを維持
+  // null または 空文字の場合はnullに正規化
+  // 有効な文字列の場合はtrimして返す
+  let name: string | null | undefined
+  if (data.name === undefined) {
+    name = undefined
+  } else if (data.name === null || data.name.trim() === '') {
+    name = null
+  } else {
+    name = data.name.trim()
+  }
+
   return {
-    name: name && name !== '' ? name : null,
-    email: data.email.trim().toLowerCase(),
+    name,
+    email: data.email.toLowerCase(), // trimはスキーマで実行済み
   }
 }
 
