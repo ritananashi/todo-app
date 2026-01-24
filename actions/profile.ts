@@ -63,10 +63,7 @@ export async function updateProfile(data: UpdateProfileInput): Promise<ProfileRe
   }
 
   // name未指定時は更新対象から外す（既存値を保持）
-  const updateData: { email: string; name?: string | null } = { email }
-  if (name !== undefined) {
-    updateData.name = name
-  }
+  const updateData = name === undefined ? { email } : { email, name }
 
   try {
     await prisma.user.update({

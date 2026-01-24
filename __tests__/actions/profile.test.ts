@@ -195,6 +195,25 @@ describe('updateProfile action', () => {
     expect(result.error).toBe('このメールアドレスは既に使用されています')
   })
 
+  it('P2002エラーで複合キー（emailを含む）の場合もエラーを返す', async () => {
+    mockAuth.mockResolvedValue({
+      user: { id: 'user-1', email: 'old@example.com', name: 'Name' },
+      expires: new Date().toISOString(),
+    })
+    mockPrisma.user.findUnique.mockResolvedValue(null)
+    const p2002Error = new Error('Unique constraint failed')
+    Object.assign(p2002Error, { code: 'P2002', meta: { target: ['email', 'id'] } })
+    mockPrisma.user.update.mockRejectedValue(p2002Error)
+
+    const result = await updateProfile({
+      name: 'Name',
+      email: 'race-condition@example.com',
+    })
+
+    expect(result.success).toBe(false)
+    expect(result.error).toBe('このメールアドレスは既に使用されています')
+  })
+
   it('emailが小文字に正規化されて保存される', async () => {
     mockAuth.mockResolvedValue({
       user: { id: 'user-1', email: 'old@example.com', name: 'Name' },
