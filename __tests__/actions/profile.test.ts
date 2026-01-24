@@ -233,6 +233,44 @@ describe('updateProfile action', () => {
     expect(result.error).toBe('一意制約違反が発生しました')
   })
 
+  it('P2002エラーでtargetが文字列（email）の場合もemailエラーを返す', async () => {
+    mockAuth.mockResolvedValue({
+      user: { id: 'user-1', email: 'old@example.com', name: 'Name' },
+      expires: new Date().toISOString(),
+    })
+    mockPrisma.user.findUnique.mockResolvedValue(null)
+    const p2002Error = new Error('Unique constraint failed')
+    Object.assign(p2002Error, { code: 'P2002', meta: { target: 'email' } })
+    mockPrisma.user.update.mockRejectedValue(p2002Error)
+
+    const result = await updateProfile({
+      name: 'Name',
+      email: 'race-condition@example.com',
+    })
+
+    expect(result.success).toBe(false)
+    expect(result.error).toBe('このメールアドレスは既に使用されています')
+  })
+
+  it('P2002エラーでtargetが文字列（email以外）の場合は汎用エラーを返す', async () => {
+    mockAuth.mockResolvedValue({
+      user: { id: 'user-1', email: 'old@example.com', name: 'Name' },
+      expires: new Date().toISOString(),
+    })
+    mockPrisma.user.findUnique.mockResolvedValue(null)
+    const p2002Error = new Error('Unique constraint failed')
+    Object.assign(p2002Error, { code: 'P2002', meta: { target: 'other_field' } })
+    mockPrisma.user.update.mockRejectedValue(p2002Error)
+
+    const result = await updateProfile({
+      name: 'Name',
+      email: 'test@example.com',
+    })
+
+    expect(result.success).toBe(false)
+    expect(result.error).toBe('一意制約違反が発生しました')
+  })
+
   it('emailが小文字に正規化されて保存される', async () => {
     mockAuth.mockResolvedValue({
       user: { id: 'user-1', email: 'old@example.com', name: 'Name' },

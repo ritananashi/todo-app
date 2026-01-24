@@ -23,14 +23,23 @@ function getUniqueConstraintField(error: unknown): 'email' | 'unknown' | null {
     return null
   }
 
-  // meta.targetでフィールドを確認
+  // meta.targetでフィールドを確認（配列または文字列の場合がある）
   if ('meta' in error && typeof (error as { meta: unknown }).meta === 'object') {
     const meta = (error as { meta: { target?: unknown } }).meta
-    if (Array.isArray(meta?.target) && meta.target.includes('email')) {
-      return 'email'
+    const target = meta?.target
+
+    // targetが配列の場合
+    if (Array.isArray(target)) {
+      return target.includes('email') ? 'email' : 'unknown'
     }
-    // targetがあるがemailではない場合
-    if (meta?.target) {
+
+    // targetが文字列の場合
+    if (typeof target === 'string') {
+      return target === 'email' || target.includes('email') ? 'email' : 'unknown'
+    }
+
+    // targetが存在するが配列でも文字列でもない場合
+    if (target) {
       return 'unknown'
     }
   }
