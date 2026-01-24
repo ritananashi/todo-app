@@ -62,7 +62,7 @@ export function TodoList({ todos }: TodoListProps) {
       result = result.filter((todo) => todo.priority === priorityFilter)
     }
 
-    // ソート
+    // ソート（normalizedTodosで既にDateオブジェクトに変換済み）
     result = [...result].sort((a, b) => {
       switch (sortBy) {
         case 'priority':
@@ -72,10 +72,10 @@ export function TodoList({ todos }: TodoListProps) {
           if (!a.dueDate && !b.dueDate) return 0
           if (!a.dueDate) return 1
           if (!b.dueDate) return -1
-          return new Date(a.dueDate).getTime() - new Date(b.dueDate).getTime()
+          return a.dueDate.getTime() - b.dueDate.getTime()
         case 'createdAt':
         default:
-          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+          return b.createdAt.getTime() - a.createdAt.getTime()
       }
     })
 
