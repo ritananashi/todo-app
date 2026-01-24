@@ -17,7 +17,7 @@ export function PriorityFilter({ value, onChange }: PriorityFilterProps) {
         size="sm"
         onClick={() => onChange(null)}
         aria-pressed={value === null}
-        className={cn(value === null && 'bg-accent')}
+        className={cn(value === null && 'bg-accent text-accent-foreground')}
       >
         全て
       </Button>
@@ -28,7 +28,7 @@ export function PriorityFilter({ value, onChange }: PriorityFilterProps) {
           size="sm"
           onClick={() => onChange(priority)}
           aria-pressed={value === priority}
-          className={cn(value === priority && 'bg-accent')}
+          className={cn(value === priority && 'bg-accent text-accent-foreground')}
         >
           {priorityLabels[priority]}
         </Button>
