@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { CheckSquare } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { auth } from '@/lib/auth'
-import { logout } from '@/actions/auth'
+import { UserMenu } from '@/components/UserMenu'
 
 export async function Header() {
   const session = await auth()
@@ -15,21 +15,15 @@ export async function Header() {
           <span className="text-xl font-bold">ToDoアプリ</span>
         </Link>
         <div className="flex items-center gap-2">
-          {session ? (
+          {session?.user?.email ? (
             <>
-              {session.user?.email && (
-                <span className="hidden text-sm text-muted-foreground sm:block">
-                  {session.user.email}
-                </span>
-              )}
               <Button variant="ghost" asChild>
                 <Link href="/todos">ToDo一覧</Link>
               </Button>
-              <form action={logout}>
-                <Button type="submit" variant="outline">
-                  ログアウト
-                </Button>
-              </form>
+              <UserMenu
+                name={session.user.name ?? null}
+                email={session.user.email}
+              />
             </>
           ) : (
             <>

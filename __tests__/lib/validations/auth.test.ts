@@ -27,13 +27,39 @@ describe('signupSchema', () => {
   it('should reject password shorter than 8 characters', () => {
     const invalidData = {
       email: 'test@example.com',
-      password: 'short',
-      confirmPassword: 'short',
+      password: 'short1',
+      confirmPassword: 'short1',
     }
     const result = signupSchema.safeParse(invalidData)
     expect(result.success).toBe(false)
     if (!result.success) {
-      expect(result.error.issues[0].path).toContain('password')
+      expect(result.error.issues[0].message).toBe('パスワードは8文字以上で入力してください')
+    }
+  })
+
+  it('should reject password without letters', () => {
+    const invalidData = {
+      email: 'test@example.com',
+      password: '12345678',
+      confirmPassword: '12345678',
+    }
+    const result = signupSchema.safeParse(invalidData)
+    expect(result.success).toBe(false)
+    if (!result.success) {
+      expect(result.error.issues[0].message).toBe('パスワードには英字と数字を含めてください')
+    }
+  })
+
+  it('should reject password without numbers', () => {
+    const invalidData = {
+      email: 'test@example.com',
+      password: 'abcdefgh',
+      confirmPassword: 'abcdefgh',
+    }
+    const result = signupSchema.safeParse(invalidData)
+    expect(result.success).toBe(false)
+    if (!result.success) {
+      expect(result.error.issues[0].message).toBe('パスワードには英字と数字を含めてください')
     }
   })
 
