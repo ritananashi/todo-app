@@ -34,9 +34,18 @@ export function TodoList({ todos }: TodoListProps) {
     [todos]
   )
 
+  // RSC境界を跨ぐとDateがstringになるため、クライアント側で正規化
+  const normalizedTodos = useMemo(() => {
+    return todos.map((todo) => ({
+      ...todo,
+      dueDate: todo.dueDate ? new Date(todo.dueDate) : null,
+      createdAt: new Date(todo.createdAt),
+    }))
+  }, [todos])
+
   const filteredAndSortedTodos = useMemo(() => {
     // フィルタリング
-    let result = todos
+    let result = normalizedTodos
 
     // 完了状態フィルタ
     switch (statusFilter) {
@@ -71,7 +80,7 @@ export function TodoList({ todos }: TodoListProps) {
     })
 
     return result
-  }, [todos, statusFilter, priorityFilter, sortBy])
+  }, [normalizedTodos, statusFilter, priorityFilter, sortBy])
 
   if (todos.length === 0) {
     return (

@@ -149,7 +149,7 @@ export function TodoEditDialog({ open, onOpenChange, todo }: TodoEditDialogProps
                   <FormControl>
                     <Checkbox
                       checked={field.value}
-                      onCheckedChange={field.onChange}
+                      onCheckedChange={(checked) => field.onChange(checked === true)}
                     />
                   </FormControl>
                   <FormLabel className="font-normal">完了</FormLabel>
