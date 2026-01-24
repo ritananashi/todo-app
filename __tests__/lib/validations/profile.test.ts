@@ -1,6 +1,7 @@
 import {
   updateProfileSchema,
   changePasswordSchema,
+  normalizeProfileInput,
   UpdateProfileInput,
   ChangePasswordInput,
 } from '@/lib/validations/profile'
@@ -67,6 +68,61 @@ describe('updateProfileSchema', () => {
         expect(result.error.issues[0].message).toBe('有効なメールアドレスを入力してください')
       }
     })
+  })
+})
+
+describe('normalizeProfileInput', () => {
+  it('emailがtrimされて小文字に変換される', () => {
+    const input: UpdateProfileInput = {
+      name: 'テストユーザー',
+      email: '  TEST@EXAMPLE.COM  ',
+    }
+    const result = normalizeProfileInput(input)
+    expect(result.email).toBe('test@example.com')
+  })
+
+  it('nameがtrimされる', () => {
+    const input: UpdateProfileInput = {
+      name: '  テストユーザー  ',
+      email: 'test@example.com',
+    }
+    const result = normalizeProfileInput(input)
+    expect(result.name).toBe('テストユーザー')
+  })
+
+  it('nameが空白のみの場合、nullに変換される', () => {
+    const input: UpdateProfileInput = {
+      name: '   ',
+      email: 'test@example.com',
+    }
+    const result = normalizeProfileInput(input)
+    expect(result.name).toBeNull()
+  })
+
+  it('nameが空文字の場合、nullに変換される', () => {
+    const input: UpdateProfileInput = {
+      name: '',
+      email: 'test@example.com',
+    }
+    const result = normalizeProfileInput(input)
+    expect(result.name).toBeNull()
+  })
+
+  it('nameがnullの場合、nullのまま', () => {
+    const input: UpdateProfileInput = {
+      name: null,
+      email: 'test@example.com',
+    }
+    const result = normalizeProfileInput(input)
+    expect(result.name).toBeNull()
+  })
+
+  it('nameがundefinedの場合、nullに変換される', () => {
+    const input: UpdateProfileInput = {
+      email: 'test@example.com',
+    }
+    const result = normalizeProfileInput(input)
+    expect(result.name).toBeNull()
   })
 })
 

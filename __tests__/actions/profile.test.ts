@@ -71,7 +71,7 @@ describe('updateProfile action', () => {
     })
   })
 
-  it('nameを空にすることができる', async () => {
+  it('nameを空にすることができる（nullとして保存される）', async () => {
     mockAuth.mockResolvedValue({
       user: { id: 'user-1', email: 'test@example.com', name: 'Old Name' },
       expires: new Date().toISOString(),
@@ -80,7 +80,7 @@ describe('updateProfile action', () => {
     mockPrisma.user.update.mockResolvedValue({
       id: 'user-1',
       email: 'test@example.com',
-      name: '',
+      name: null,
     })
 
     const result = await updateProfile({
@@ -91,7 +91,7 @@ describe('updateProfile action', () => {
     expect(result.success).toBe(true)
     expect(mockPrisma.user.update).toHaveBeenCalledWith({
       where: { id: 'user-1' },
-      data: { name: '', email: 'test@example.com' },
+      data: { name: null, email: 'test@example.com' },
     })
   })
 
@@ -153,6 +153,77 @@ describe('updateProfile action', () => {
 
     expect(result.success).toBe(false)
     expect(result.error).toBe('有効なメールアドレスを入力してください')
+  })
+
+  it('並行更新で一意制約違反が発生した場合、エラーを返す', async () => {
+    mockAuth.mockResolvedValue({
+      user: { id: 'user-1', email: 'old@example.com', name: 'Name' },
+      expires: new Date().toISOString(),
+    })
+    // findUniqueでは見つからない（チェック時点では空いている）
+    mockPrisma.user.findUnique.mockResolvedValue(null)
+    // しかしupdateで一意制約違反が発生（P2002エラー）
+    const p2002Error = new Error('Unique constraint failed')
+    Object.assign(p2002Error, { code: 'P2002' })
+    mockPrisma.user.update.mockRejectedValue(p2002Error)
+
+    const result = await updateProfile({
+      name: 'Name',
+      email: 'race-condition@example.com',
+    })
+
+    expect(result.success).toBe(false)
+    expect(result.error).toBe('このメールアドレスは既に使用されています')
+  })
+
+  it('emailが小文字に正規化されて保存される', async () => {
+    mockAuth.mockResolvedValue({
+      user: { id: 'user-1', email: 'old@example.com', name: 'Name' },
+      expires: new Date().toISOString(),
+    })
+    mockPrisma.user.findUnique.mockResolvedValue(null)
+    mockPrisma.user.update.mockResolvedValue({
+      id: 'user-1',
+      email: 'test@example.com',
+      name: 'New Name',
+    })
+
+    // 大文字のemailを送信
+    const result = await updateProfile({
+      name: 'New Name',
+      email: 'TEST@EXAMPLE.COM',
+    })
+
+    expect(result.success).toBe(true)
+    // 小文字に正規化されて保存される
+    expect(mockPrisma.user.update).toHaveBeenCalledWith({
+      where: { id: 'user-1' },
+      data: { name: 'New Name', email: 'test@example.com' },
+    })
+  })
+
+  it('nameが空白のみの場合、nullとして保存される', async () => {
+    mockAuth.mockResolvedValue({
+      user: { id: 'user-1', email: 'test@example.com', name: 'Old Name' },
+      expires: new Date().toISOString(),
+    })
+    mockPrisma.user.findUnique.mockResolvedValue(null)
+    mockPrisma.user.update.mockResolvedValue({
+      id: 'user-1',
+      email: 'test@example.com',
+      name: null,
+    })
+
+    const result = await updateProfile({
+      name: '   ',
+      email: 'test@example.com',
+    })
+
+    expect(result.success).toBe(true)
+    expect(mockPrisma.user.update).toHaveBeenCalledWith({
+      where: { id: 'user-1' },
+      data: { name: null, email: 'test@example.com' },
+    })
   })
 })
 

@@ -5,6 +5,18 @@ export const updateProfileSchema = z.object({
   email: z.string().email('有効なメールアドレスを入力してください'),
 })
 
+// 正規化用のヘルパー関数（Server Actionで使用）
+export function normalizeProfileInput(data: UpdateProfileInput): {
+  name: string | null
+  email: string
+} {
+  const name = data.name?.trim()
+  return {
+    name: name && name !== '' ? name : null,
+    email: data.email.trim().toLowerCase(),
+  }
+}
+
 export const changePasswordSchema = z
   .object({
     currentPassword: z.string().min(1, '現在のパスワードを入力してください'),
