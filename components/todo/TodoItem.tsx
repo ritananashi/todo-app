@@ -42,7 +42,9 @@ export function TodoItem({ id, title, isCompleted, memo, priority, dueDate }: To
             <h3
               className={cn(
                 'font-medium',
-                isCompleted && 'line-through text-muted-foreground'
+                isCompleted
+                  ? 'line-through'
+                  : 'text-muted-foreground'
               )}
             >
               {title}
