@@ -18,6 +18,8 @@ describe('TodoItem', () => {
     title: 'タスク1',
     isCompleted: false,
     memo: null,
+    priority: 'medium' as const,
+    dueDate: null,
   }
 
   beforeEach(() => {

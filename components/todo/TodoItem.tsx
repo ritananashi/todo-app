@@ -7,15 +7,21 @@ import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { TodoEditDialog } from './TodoEditDialog'
 import { TodoDeleteDialog } from './TodoDeleteDialog'
+import { priorityLabels, type Priority } from '@/lib/validations/todo'
+import { formatDueDate, getDueDateStatus } from '@/lib/date-utils'
 
 interface TodoItemProps {
   id: string
   title: string
   isCompleted: boolean
   memo: string | null
+  priority: Priority
+  dueDate: Date | null
 }
 
-export function TodoItem({ id, title, isCompleted, memo }: TodoItemProps) {
+export function TodoItem({ id, title, isCompleted, memo, priority, dueDate }: TodoItemProps) {
+  const dueDateStatus = getDueDateStatus(dueDate)
+  const formattedDueDate = formatDueDate(dueDate)
   const [editOpen, setEditOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
 
@@ -41,16 +47,41 @@ export function TodoItem({ id, title, isCompleted, memo }: TodoItemProps) {
             >
               {title}
             </h3>
-            <span
-              className={cn(
-                'text-xs px-2 py-1 rounded-full',
-                isCompleted
-                  ? 'bg-green-100 text-green-700'
-                  : 'bg-yellow-100 text-yellow-700'
+            <div className="flex items-center gap-2">
+              <span
+                className={cn(
+                  'text-xs px-2 py-1 rounded-full',
+                  priority === 'urgent' && 'bg-red-100 text-red-700',
+                  priority === 'high' && 'bg-orange-100 text-orange-700',
+                  priority === 'medium' && 'bg-blue-100 text-blue-700',
+                  priority === 'low' && 'bg-gray-100 text-gray-700'
+                )}
+              >
+                {priorityLabels[priority]}
+              </span>
+              {formattedDueDate && (
+                <span
+                  className={cn(
+                    'text-xs px-2 py-1 rounded-full',
+                    dueDateStatus === 'overdue' && 'bg-red-100 text-red-700',
+                    dueDateStatus === 'today' && 'bg-yellow-100 text-yellow-700',
+                    dueDateStatus === 'normal' && 'bg-gray-100 text-gray-600'
+                  )}
+                >
+                  {formattedDueDate}
+                </span>
               )}
-            >
-              {isCompleted ? '完了' : '未完了'}
-            </span>
+              <span
+                className={cn(
+                  'text-xs px-2 py-1 rounded-full',
+                  isCompleted
+                    ? 'bg-green-100 text-green-700'
+                    : 'bg-yellow-100 text-yellow-700'
+                )}
+              >
+                {isCompleted ? '完了' : '未完了'}
+              </span>
+            </div>
           </div>
           {memo && (
             <p className="text-sm text-muted-foreground mt-2">{memo}</p>
@@ -78,7 +109,7 @@ export function TodoItem({ id, title, isCompleted, memo }: TodoItemProps) {
       <TodoEditDialog
         open={editOpen}
         onOpenChange={setEditOpen}
-        todo={{ id, title, memo, isCompleted }}
+        todo={{ id, title, memo, isCompleted, priority, dueDate }}
       />
 
       <TodoDeleteDialog

@@ -60,6 +60,8 @@ describe('createTodo action', () => {
         userId: 'user-1',
         title: 'タスク1',
         memo: null, // undefined from zod is converted to null for Prisma
+        priority: 'medium',
+        dueDate: null,
       },
     })
     expect(mockRevalidatePath).toHaveBeenCalledWith('/todos')
@@ -88,6 +90,8 @@ describe('createTodo action', () => {
         userId: 'user-1',
         title: 'タスク1',
         memo: 'メモ内容',
+        priority: 'medium',
+        dueDate: null,
       },
     })
   })
@@ -247,6 +251,8 @@ describe('updateTodo action', () => {
     title: '更新後のタスク',
     memo: '更新後のメモ',
     isCompleted: true,
+    priority: 'medium' as const,
+    dueDate: null,
   }
 
   it('should update todo for authenticated user', async () => {
@@ -287,6 +293,8 @@ describe('updateTodo action', () => {
         title: '更新後のタスク',
         memo: '更新後のメモ',
         isCompleted: true,
+        priority: 'medium',
+        dueDate: null,
       },
     })
     expect(mockRevalidatePath).toHaveBeenCalledWith('/todos')

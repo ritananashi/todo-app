@@ -16,6 +16,8 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
+import { PrioritySelect } from './PrioritySelect'
+import { DueDatePicker } from './DueDatePicker'
 
 interface TodoFormProps {
   onSuccess: () => void
@@ -29,6 +31,8 @@ export function TodoForm({ onSuccess }: TodoFormProps) {
     defaultValues: {
       title: '',
       memo: '',
+      priority: 'medium',
+      dueDate: null,
     },
   })
 
@@ -79,6 +83,36 @@ export function TodoForm({ onSuccess }: TodoFormProps) {
             </FormItem>
           )}
         />
+
+        <div className="grid grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="priority"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>重要度</FormLabel>
+                <FormControl>
+                  <PrioritySelect value={field.value ?? 'medium'} onChange={field.onChange} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="dueDate"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>締切日（任意）</FormLabel>
+                <FormControl>
+                  <DueDatePicker value={field.value ?? null} onChange={field.onChange} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
 
         <Button type="submit" className="w-full">
           追加

@@ -55,6 +55,8 @@ export function TodoList({ todos }: TodoListProps) {
             title={todo.title}
             isCompleted={todo.isCompleted}
             memo={todo.memo}
+            priority={todo.priority}
+            dueDate={todo.dueDate}
           />
         ))}
       </div>
