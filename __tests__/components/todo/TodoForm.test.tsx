@@ -1,10 +1,17 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { TodoForm } from '@/components/todo/TodoForm'
+import { showSuccessToast, showErrorToast } from '@/lib/toast'
 
 // Mock the createTodo action
 const mockCreateTodo = jest.fn()
 jest.mock('@/actions/todo', () => ({
   createTodo: (...args: unknown[]) => mockCreateTodo(...args),
+}))
+
+// Mock toast utilities
+jest.mock('@/lib/toast', () => ({
+  showSuccessToast: jest.fn(),
+  showErrorToast: jest.fn(),
 }))
 
 describe('TodoForm', () => {
@@ -13,6 +20,8 @@ describe('TodoForm', () => {
   beforeEach(() => {
     mockCreateTodo.mockReset()
     mockOnSuccess.mockReset()
+    jest.mocked(showSuccessToast).mockReset()
+    jest.mocked(showErrorToast).mockReset()
   })
 
   it('should render all form fields', () => {
@@ -150,5 +159,35 @@ describe('TodoForm', () => {
       expect(screen.getByText('エラーが発生しました')).toBeInTheDocument()
     })
     expect(mockOnSuccess).not.toHaveBeenCalled()
+  })
+
+  it('should show success toast when todo is created', async () => {
+    mockCreateTodo.mockResolvedValue({ success: true, todo: { id: 'todo-1' } })
+    render(<TodoForm onSuccess={mockOnSuccess} />)
+
+    const titleInput = screen.getByLabelText('タイトル')
+    fireEvent.change(titleInput, { target: { value: 'タスク1' } })
+
+    const submitButton = screen.getByRole('button', { name: '追加' })
+    fireEvent.click(submitButton)
+
+    await waitFor(() => {
+      expect(showSuccessToast).toHaveBeenCalledWith('タスクを作成しました')
+    })
+  })
+
+  it('should show error toast when todo creation fails', async () => {
+    mockCreateTodo.mockResolvedValue({ success: false, error: 'エラーが発生しました' })
+    render(<TodoForm onSuccess={mockOnSuccess} />)
+
+    const titleInput = screen.getByLabelText('タイトル')
+    fireEvent.change(titleInput, { target: { value: 'タスク1' } })
+
+    const submitButton = screen.getByRole('button', { name: '追加' })
+    fireEvent.click(submitButton)
+
+    await waitFor(() => {
+      expect(showErrorToast).toHaveBeenCalledWith('タスクの作成に失敗しました')
+    })
   })
 })

@@ -1,10 +1,17 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { TodoEditDialog } from '@/components/todo/TodoEditDialog'
+import { showSuccessToast, showErrorToast } from '@/lib/toast'
 
 // Mock the updateTodo action
 const mockUpdateTodo = jest.fn()
 jest.mock('@/actions/todo', () => ({
   updateTodo: (...args: unknown[]) => mockUpdateTodo(...args),
+}))
+
+// Mock toast utilities
+jest.mock('@/lib/toast', () => ({
+  showSuccessToast: jest.fn(),
+  showErrorToast: jest.fn(),
 }))
 
 describe('TodoEditDialog', () => {
@@ -26,6 +33,8 @@ describe('TodoEditDialog', () => {
   beforeEach(() => {
     mockUpdateTodo.mockReset()
     defaultProps.onOpenChange.mockReset()
+    jest.mocked(showSuccessToast).mockReset()
+    jest.mocked(showErrorToast).mockReset()
   })
 
   it('should render dialog when open', () => {
@@ -133,5 +142,29 @@ describe('TodoEditDialog', () => {
     fireEvent.click(cancelButton)
 
     expect(defaultProps.onOpenChange).toHaveBeenCalledWith(false)
+  })
+
+  it('should show success toast on successful update', async () => {
+    mockUpdateTodo.mockResolvedValue({ success: true, todo: baseTodo })
+    render(<TodoEditDialog {...defaultProps} />)
+
+    const submitButton = screen.getByRole('button', { name: '保存' })
+    fireEvent.click(submitButton)
+
+    await waitFor(() => {
+      expect(showSuccessToast).toHaveBeenCalledWith('タスクを更新しました')
+    })
+  })
+
+  it('should show error toast on update failure', async () => {
+    mockUpdateTodo.mockResolvedValue({ success: false, error: 'タスクが見つかりません' })
+    render(<TodoEditDialog {...defaultProps} />)
+
+    const submitButton = screen.getByRole('button', { name: '保存' })
+    fireEvent.click(submitButton)
+
+    await waitFor(() => {
+      expect(showErrorToast).toHaveBeenCalledWith('タスクの更新に失敗しました')
+    })
   })
 })

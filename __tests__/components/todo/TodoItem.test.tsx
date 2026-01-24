@@ -1,5 +1,6 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { TodoItem } from '@/components/todo/TodoItem'
+import { showSuccessToast, showErrorToast } from '@/lib/toast'
 
 // Mock the actions
 const mockToggleTodoComplete = jest.fn()
@@ -10,6 +11,12 @@ jest.mock('@/actions/todo', () => ({
   toggleTodoComplete: (...args: unknown[]) => mockToggleTodoComplete(...args),
   updateTodo: (...args: unknown[]) => mockUpdateTodo(...args),
   deleteTodo: (...args: unknown[]) => mockDeleteTodo(...args),
+}))
+
+// Mock toast utilities
+jest.mock('@/lib/toast', () => ({
+  showSuccessToast: jest.fn(),
+  showErrorToast: jest.fn(),
 }))
 
 describe('TodoItem', () => {
@@ -26,6 +33,8 @@ describe('TodoItem', () => {
     mockToggleTodoComplete.mockReset()
     mockUpdateTodo.mockReset()
     mockDeleteTodo.mockReset()
+    jest.mocked(showSuccessToast).mockReset()
+    jest.mocked(showErrorToast).mockReset()
   })
 
   it('should render todo title', () => {
@@ -135,6 +144,42 @@ describe('TodoItem', () => {
     await waitFor(() => {
       expect(screen.getByRole('alertdialog')).toBeInTheDocument()
       expect(screen.getByText('タスクを削除')).toBeInTheDocument()
+    })
+  })
+
+  it('should show success toast when completing todo', async () => {
+    mockToggleTodoComplete.mockResolvedValue({ success: true, todo: { ...baseTodo, isCompleted: true } })
+    render(<TodoItem {...baseTodo} isCompleted={false} />)
+
+    const checkbox = screen.getByRole('checkbox')
+    fireEvent.click(checkbox)
+
+    await waitFor(() => {
+      expect(showSuccessToast).toHaveBeenCalledWith('タスクを完了にしました')
+    })
+  })
+
+  it('should show success toast when uncompleting todo', async () => {
+    mockToggleTodoComplete.mockResolvedValue({ success: true, todo: { ...baseTodo, isCompleted: false } })
+    render(<TodoItem {...baseTodo} isCompleted={true} />)
+
+    const checkbox = screen.getByRole('checkbox')
+    fireEvent.click(checkbox)
+
+    await waitFor(() => {
+      expect(showSuccessToast).toHaveBeenCalledWith('タスクを未完了にしました')
+    })
+  })
+
+  it('should show error toast when toggle fails', async () => {
+    mockToggleTodoComplete.mockResolvedValue({ success: false, error: 'エラーが発生しました' })
+    render(<TodoItem {...baseTodo} />)
+
+    const checkbox = screen.getByRole('checkbox')
+    fireEvent.click(checkbox)
+
+    await waitFor(() => {
+      expect(showErrorToast).toHaveBeenCalledWith('状態の更新に失敗しました')
     })
   })
 })

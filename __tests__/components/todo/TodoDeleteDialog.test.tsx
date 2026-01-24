@@ -1,10 +1,17 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { TodoDeleteDialog } from '@/components/todo/TodoDeleteDialog'
+import { showSuccessToast, showErrorToast } from '@/lib/toast'
 
 // Mock the deleteTodo action
 const mockDeleteTodo = jest.fn()
 jest.mock('@/actions/todo', () => ({
   deleteTodo: (...args: unknown[]) => mockDeleteTodo(...args),
+}))
+
+// Mock toast utilities
+jest.mock('@/lib/toast', () => ({
+  showSuccessToast: jest.fn(),
+  showErrorToast: jest.fn(),
 }))
 
 describe('TodoDeleteDialog', () => {
@@ -18,6 +25,8 @@ describe('TodoDeleteDialog', () => {
   beforeEach(() => {
     mockDeleteTodo.mockReset()
     defaultProps.onOpenChange.mockReset()
+    jest.mocked(showSuccessToast).mockReset()
+    jest.mocked(showErrorToast).mockReset()
   })
 
   it('should render dialog when open', () => {
@@ -95,5 +104,29 @@ describe('TodoDeleteDialog', () => {
     fireEvent.click(cancelButton)
 
     expect(defaultProps.onOpenChange).toHaveBeenCalledWith(false)
+  })
+
+  it('should show success toast on successful delete', async () => {
+    mockDeleteTodo.mockResolvedValue({ success: true })
+    render(<TodoDeleteDialog {...defaultProps} />)
+
+    const deleteButton = screen.getByRole('button', { name: '削除' })
+    fireEvent.click(deleteButton)
+
+    await waitFor(() => {
+      expect(showSuccessToast).toHaveBeenCalledWith('タスクを削除しました')
+    })
+  })
+
+  it('should show error toast on delete failure', async () => {
+    mockDeleteTodo.mockResolvedValue({ success: false, error: 'タスクが見つかりません' })
+    render(<TodoDeleteDialog {...defaultProps} />)
+
+    const deleteButton = screen.getByRole('button', { name: '削除' })
+    fireEvent.click(deleteButton)
+
+    await waitFor(() => {
+      expect(showErrorToast).toHaveBeenCalledWith('タスクの削除に失敗しました')
+    })
   })
 })

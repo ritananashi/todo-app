@@ -11,6 +11,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog'
+import { showSuccessToast, showErrorToast } from '@/lib/toast'
 
 interface TodoDeleteDialogProps {
   open: boolean
@@ -35,8 +36,10 @@ export function TodoDeleteDialog({
     const result = await deleteTodo(todoId)
 
     if (result.success) {
+      showSuccessToast('タスクを削除しました')
       onOpenChange(false)
     } else {
+      showErrorToast('タスクの削除に失敗しました')
       setError(result.error)
     }
 

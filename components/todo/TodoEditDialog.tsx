@@ -31,6 +31,7 @@ import {
 } from '@/components/ui/form'
 import { PrioritySelect } from './PrioritySelect'
 import { DueDatePicker } from './DueDatePicker'
+import { showSuccessToast, showErrorToast } from '@/lib/toast'
 
 interface TodoEditDialogProps {
   open: boolean
@@ -86,8 +87,10 @@ export function TodoEditDialog({ open, onOpenChange, todo }: TodoEditDialogProps
     setServerError(null)
     const result = await updateTodo(data)
     if (result.success) {
+      showSuccessToast('タスクを更新しました')
       onOpenChange(false)
     } else {
+      showErrorToast('タスクの更新に失敗しました')
       setServerError(result.error)
     }
   }
