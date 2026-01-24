@@ -11,27 +11,32 @@ import {
   type ChangePasswordInput,
 } from '@/lib/validations/profile'
 
-// Prisma P2002 error check helper（email制約違反のみを判定）
-function isEmailUniqueConstraintError(error: unknown): boolean {
+// Prisma P2002 error handling helper
+// 返り値: 'email' = email制約違反, 'unknown' = 他の一意制約違反, null = P2002以外
+function getUniqueConstraintField(error: unknown): 'email' | 'unknown' | null {
   if (
     typeof error !== 'object' ||
     error === null ||
     !('code' in error) ||
     (error as { code: string }).code !== 'P2002'
   ) {
-    return false
+    return null
   }
 
-  // meta.targetでemailフィールドの制約違反かを確認
+  // meta.targetでフィールドを確認
   if ('meta' in error && typeof (error as { meta: unknown }).meta === 'object') {
     const meta = (error as { meta: { target?: unknown } }).meta
-    if (Array.isArray(meta?.target)) {
-      return meta.target.includes('email')
+    if (Array.isArray(meta?.target) && meta.target.includes('email')) {
+      return 'email'
+    }
+    // targetがあるがemailではない場合
+    if (meta?.target) {
+      return 'unknown'
     }
   }
 
-  // targetが取得できない場合はP2002をemail制約として扱う（フォールバック）
-  return true
+  // P2002だがtarget情報がない場合は不明な制約違反として扱う
+  return 'unknown'
 }
 
 export type ProfileResult = {
@@ -71,8 +76,12 @@ export async function updateProfile(data: UpdateProfileInput): Promise<ProfileRe
       data: updateData,
     })
   } catch (error) {
-    if (isEmailUniqueConstraintError(error)) {
+    const constraintField = getUniqueConstraintField(error)
+    if (constraintField === 'email') {
       return { success: false, error: 'このメールアドレスは既に使用されています' }
+    }
+    if (constraintField === 'unknown') {
+      return { success: false, error: '一意制約違反が発生しました' }
     }
     throw error
   }
