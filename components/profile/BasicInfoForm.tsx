@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useSession } from 'next-auth/react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { updateProfileSchema, type UpdateProfileInput } from '@/lib/validations/profile'
@@ -23,6 +24,7 @@ interface BasicInfoFormProps {
 }
 
 export function BasicInfoForm({ initialName, initialEmail, onSuccess }: BasicInfoFormProps) {
+  const { update: updateSession } = useSession()
   const [serverError, setServerError] = useState<string | null>(null)
 
   const form = useForm<UpdateProfileInput>({
@@ -37,6 +39,8 @@ export function BasicInfoForm({ initialName, initialEmail, onSuccess }: BasicInf
     setServerError(null)
     const result = await updateProfile(data)
     if (result.success) {
+      // セッションを更新して、UIに即座に反映する
+      await updateSession()
       onSuccess()
     } else if (result.error) {
       setServerError(result.error)

@@ -7,6 +7,14 @@ jest.mock('@/actions/profile', () => ({
   updateProfile: (...args: unknown[]) => mockUpdateProfile(...args),
 }))
 
+// Mock next-auth/react
+const mockSessionUpdate = jest.fn()
+jest.mock('next-auth/react', () => ({
+  useSession: () => ({
+    update: mockSessionUpdate,
+  }),
+}))
+
 describe('BasicInfoForm', () => {
   const defaultProps = {
     initialName: 'テストユーザー',
@@ -16,6 +24,7 @@ describe('BasicInfoForm', () => {
 
   beforeEach(() => {
     mockUpdateProfile.mockReset()
+    mockSessionUpdate.mockReset()
     defaultProps.onSuccess.mockReset()
   })
 
@@ -130,5 +139,20 @@ describe('BasicInfoForm', () => {
     render(<BasicInfoForm {...defaultProps} initialName={null} />)
 
     expect(screen.getByLabelText('ユーザーネーム')).toHaveValue('')
+  })
+
+  it('保存成功時にセッションが更新される', async () => {
+    mockUpdateProfile.mockResolvedValue({ success: true })
+    render(<BasicInfoForm {...defaultProps} />)
+
+    const nameInput = screen.getByLabelText('ユーザーネーム')
+    fireEvent.change(nameInput, { target: { value: '新しい名前' } })
+
+    const submitButton = screen.getByRole('button', { name: '保存' })
+    fireEvent.click(submitButton)
+
+    await waitFor(() => {
+      expect(mockSessionUpdate).toHaveBeenCalled()
+    })
   })
 })
