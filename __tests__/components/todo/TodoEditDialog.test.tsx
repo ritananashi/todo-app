@@ -13,6 +13,8 @@ describe('TodoEditDialog', () => {
     title: 'タスク1',
     memo: 'メモ内容',
     isCompleted: false,
+    priority: 'medium' as const,
+    dueDate: null,
   }
 
   const defaultProps = {
@@ -78,6 +80,8 @@ describe('TodoEditDialog', () => {
         title: '更新後',
         memo: 'メモ内容',
         isCompleted: false,
+        priority: 'medium',
+        dueDate: null,
       })
     })
   })

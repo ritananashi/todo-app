@@ -1,5 +1,16 @@
 import { z } from 'zod'
 
+// 重要度の定義
+export const priorityValues = ['urgent', 'high', 'medium', 'low'] as const
+export type Priority = (typeof priorityValues)[number]
+
+export const priorityLabels: Record<Priority, string> = {
+  urgent: '緊急',
+  high: '高',
+  medium: '中',
+  low: '低',
+}
+
 // 共通フィールド定義
 const titleField = z
   .string()
@@ -16,9 +27,19 @@ const memoField = z
   .optional()
   .transform((val) => val?.trim() || undefined)
 
+const priorityField = z.enum(priorityValues).default('medium')
+
+const dueDateField = z
+  .date()
+  .nullable()
+  .optional()
+  .transform((val) => val ?? null)
+
 export const createTodoSchema = z.object({
   title: titleField,
   memo: memoField,
+  priority: priorityField,
+  dueDate: dueDateField,
 })
 
 export type CreateTodoInput = z.input<typeof createTodoSchema>
@@ -29,6 +50,8 @@ export const updateTodoSchema = z.object({
   title: titleField,
   memo: memoField,
   isCompleted: z.boolean(),
+  priority: priorityField,
+  dueDate: dueDateField,
 })
 
 export type UpdateTodoInput = z.input<typeof updateTodoSchema>

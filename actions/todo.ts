@@ -43,7 +43,7 @@ export async function createTodo(data: CreateTodoInput): Promise<CreateTodoResul
     return { success: false, error: parsed.error.issues[0].message }
   }
 
-  const { title, memo } = parsed.data
+  const { title, memo, priority, dueDate } = parsed.data
 
   try {
     const todo = await prisma.todo.create({
@@ -51,6 +51,8 @@ export async function createTodo(data: CreateTodoInput): Promise<CreateTodoResul
         userId: session.user.id,
         title,
         memo: memo ?? null,
+        priority,
+        dueDate,
       },
     })
 
@@ -95,7 +97,7 @@ export async function updateTodo(data: UpdateTodoInput): Promise<UpdateTodoResul
     return { success: false, error: parsed.error.issues[0].message }
   }
 
-  const { id, title, memo, isCompleted } = parsed.data
+  const { id, title, memo, isCompleted, priority, dueDate } = parsed.data
 
   try {
     // Check if todo exists and belongs to user
@@ -111,7 +113,7 @@ export async function updateTodo(data: UpdateTodoInput): Promise<UpdateTodoResul
 
     const todo = await prisma.todo.update({
       where: { id },
-      data: { title, memo: memo ?? null, isCompleted },
+      data: { title, memo: memo ?? null, isCompleted, priority, dueDate },
     })
 
     revalidatePath('/todos')

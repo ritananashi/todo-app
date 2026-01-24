@@ -2,15 +2,28 @@
 
 import { useMemo, useState } from 'react'
 import type { TodoModel as Todo } from '@/src/generated/prisma/models'
+import type { Priority } from '@/lib/validations/todo'
 import { TodoItem } from './TodoItem'
 import { TodoFilter, type FilterType } from './TodoFilter'
+import { PriorityFilter } from './PriorityFilter'
+import { TodoSortSelect, type SortOption } from './TodoSortSelect'
+
+// 重要度の順序（高い順）
+const priorityOrder: Record<Priority, number> = {
+  urgent: 0,
+  high: 1,
+  medium: 2,
+  low: 3,
+}
 
 interface TodoListProps {
   todos: Todo[]
 }
 
 export function TodoList({ todos }: TodoListProps) {
-  const [filter, setFilter] = useState<FilterType>('all')
+  const [statusFilter, setStatusFilter] = useState<FilterType>('all')
+  const [priorityFilter, setPriorityFilter] = useState<Priority | null>(null)
+  const [sortBy, setSortBy] = useState<SortOption>('createdAt')
 
   const counts = useMemo(
     () => ({
@@ -21,16 +34,53 @@ export function TodoList({ todos }: TodoListProps) {
     [todos]
   )
 
-  const filteredTodos = useMemo(() => {
-    switch (filter) {
+  // RSC境界を跨ぐとDateがstringになるため、クライアント側で正規化
+  const normalizedTodos = useMemo(() => {
+    return todos.map((todo) => ({
+      ...todo,
+      dueDate: todo.dueDate ? new Date(todo.dueDate) : null,
+      createdAt: new Date(todo.createdAt),
+    }))
+  }, [todos])
+
+  const filteredAndSortedTodos = useMemo(() => {
+    // フィルタリング
+    let result = normalizedTodos
+
+    // 完了状態フィルタ
+    switch (statusFilter) {
       case 'incomplete':
-        return todos.filter((todo) => !todo.isCompleted)
+        result = result.filter((todo) => !todo.isCompleted)
+        break
       case 'completed':
-        return todos.filter((todo) => todo.isCompleted)
-      default:
-        return todos
+        result = result.filter((todo) => todo.isCompleted)
+        break
     }
-  }, [todos, filter])
+
+    // 重要度フィルタ
+    if (priorityFilter) {
+      result = result.filter((todo) => todo.priority === priorityFilter)
+    }
+
+    // ソート（normalizedTodosで既にDateオブジェクトに変換済み）
+    result = [...result].sort((a, b) => {
+      switch (sortBy) {
+        case 'priority':
+          return priorityOrder[a.priority] - priorityOrder[b.priority]
+        case 'dueDate':
+          // nullは最後に
+          if (!a.dueDate && !b.dueDate) return 0
+          if (!a.dueDate) return 1
+          if (!b.dueDate) return -1
+          return a.dueDate.getTime() - b.dueDate.getTime()
+        case 'createdAt':
+        default:
+          return b.createdAt.getTime() - a.createdAt.getTime()
+      }
+    })
+
+    return result
+  }, [normalizedTodos, statusFilter, priorityFilter, sortBy])
 
   if (todos.length === 0) {
     return (
@@ -43,20 +93,38 @@ export function TodoList({ todos }: TodoListProps) {
   return (
     <div className="max-w-2xl mx-auto">
       <TodoFilter
-        currentFilter={filter}
-        onFilterChange={setFilter}
+        currentFilter={statusFilter}
+        onFilterChange={setStatusFilter}
         counts={counts}
       />
+      <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-muted-foreground">重要度:</span>
+          <PriorityFilter value={priorityFilter} onChange={setPriorityFilter} />
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-muted-foreground">並び順:</span>
+          <TodoSortSelect value={sortBy} onChange={setSortBy} />
+        </div>
+      </div>
       <div className="space-y-3">
-        {filteredTodos.map((todo) => (
-          <TodoItem
-            key={todo.id}
-            id={todo.id}
-            title={todo.title}
-            isCompleted={todo.isCompleted}
-            memo={todo.memo}
-          />
-        ))}
+        {filteredAndSortedTodos.length === 0 ? (
+          <div className="text-center py-8 text-muted-foreground">
+            <p>該当するToDoがありません</p>
+          </div>
+        ) : (
+          filteredAndSortedTodos.map((todo) => (
+            <TodoItem
+              key={todo.id}
+              id={todo.id}
+              title={todo.title}
+              isCompleted={todo.isCompleted}
+              memo={todo.memo}
+              priority={todo.priority}
+              dueDate={todo.dueDate}
+            />
+          ))
+        )}
       </div>
     </div>
   )

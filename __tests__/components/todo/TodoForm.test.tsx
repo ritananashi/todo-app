@@ -62,6 +62,8 @@ describe('TodoForm', () => {
       expect(mockCreateTodo).toHaveBeenCalledWith({
         title: 'タスク1',
         memo: undefined,
+        priority: 'medium',
+        dueDate: null,
       })
     })
   })
@@ -83,6 +85,8 @@ describe('TodoForm', () => {
       expect(mockCreateTodo).toHaveBeenCalledWith({
         title: 'タスク1',
         memo: 'メモ内容',
+        priority: 'medium',
+        dueDate: null,
       })
     })
   })

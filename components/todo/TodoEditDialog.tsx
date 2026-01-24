@@ -3,7 +3,11 @@
 import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { updateTodoSchema, type UpdateTodoInput } from '@/lib/validations/todo'
+import {
+  updateTodoSchema,
+  type UpdateTodoInput,
+  type Priority,
+} from '@/lib/validations/todo'
 import { updateTodo } from '@/actions/todo'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -25,6 +29,8 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
+import { PrioritySelect } from './PrioritySelect'
+import { DueDatePicker } from './DueDatePicker'
 
 interface TodoEditDialogProps {
   open: boolean
@@ -34,6 +40,8 @@ interface TodoEditDialogProps {
     title: string
     memo: string | null
     isCompleted: boolean
+    priority: Priority
+    dueDate: Date | null
   }
 }
 
@@ -47,6 +55,8 @@ export function TodoEditDialog({ open, onOpenChange, todo }: TodoEditDialogProps
       title: todo.title,
       memo: todo.memo ?? '',
       isCompleted: todo.isCompleted,
+      priority: todo.priority,
+      dueDate: todo.dueDate,
     },
   })
 
@@ -58,6 +68,8 @@ export function TodoEditDialog({ open, onOpenChange, todo }: TodoEditDialogProps
         title: todo.title,
         memo: todo.memo ?? '',
         isCompleted: todo.isCompleted,
+        priority: todo.priority,
+        dueDate: todo.dueDate,
       })
     }
   }, [open, todo, form])
@@ -137,13 +149,43 @@ export function TodoEditDialog({ open, onOpenChange, todo }: TodoEditDialogProps
                   <FormControl>
                     <Checkbox
                       checked={field.value}
-                      onCheckedChange={field.onChange}
+                      onCheckedChange={(checked) => field.onChange(checked === true)}
                     />
                   </FormControl>
                   <FormLabel className="font-normal">完了</FormLabel>
                 </FormItem>
               )}
             />
+
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="priority"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>重要度</FormLabel>
+                    <FormControl>
+                      <PrioritySelect value={field.value ?? 'medium'} onChange={field.onChange} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="dueDate"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>締切日（任意）</FormLabel>
+                    <FormControl>
+                      <DueDatePicker value={field.value ?? null} onChange={field.onChange} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
 
             <DialogFooter>
               <Button type="button" variant="outline" onClick={handleCancel}>
