@@ -1,10 +1,17 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { PasswordForm } from '@/components/profile/PasswordForm'
+import { showSuccessToast, showErrorToast } from '@/lib/toast'
 
 // Mock the changePassword action
 const mockChangePassword = jest.fn()
 jest.mock('@/actions/profile', () => ({
   changePassword: (...args: unknown[]) => mockChangePassword(...args),
+}))
+
+// Mock toast utilities
+jest.mock('@/lib/toast', () => ({
+  showSuccessToast: jest.fn(),
+  showErrorToast: jest.fn(),
 }))
 
 describe('PasswordForm', () => {
@@ -15,6 +22,8 @@ describe('PasswordForm', () => {
   beforeEach(() => {
     mockChangePassword.mockReset()
     defaultProps.onSuccess.mockReset()
+    jest.mocked(showSuccessToast).mockReset()
+    jest.mocked(showErrorToast).mockReset()
   })
 
   it('フォームフィールドが正しくレンダリングされる', () => {
@@ -180,5 +189,50 @@ describe('PasswordForm', () => {
       expect(screen.getByText('現在のパスワードが正しくありません')).toBeInTheDocument()
     })
     expect(defaultProps.onSuccess).not.toHaveBeenCalled()
+  })
+
+  it('パスワード変更成功時にトーストが表示される', async () => {
+    mockChangePassword.mockResolvedValue({ success: true })
+    render(<PasswordForm {...defaultProps} />)
+
+    const currentPasswordInput = screen.getByLabelText('現在のパスワード')
+    fireEvent.change(currentPasswordInput, { target: { value: 'current123' } })
+
+    const newPasswordInput = screen.getByLabelText('新しいパスワード')
+    fireEvent.change(newPasswordInput, { target: { value: 'newpass123' } })
+
+    const confirmPasswordInput = screen.getByLabelText('新しいパスワード（確認）')
+    fireEvent.change(confirmPasswordInput, { target: { value: 'newpass123' } })
+
+    const submitButton = screen.getByRole('button', { name: 'パスワードを変更' })
+    fireEvent.click(submitButton)
+
+    await waitFor(() => {
+      expect(showSuccessToast).toHaveBeenCalledWith('パスワードを変更しました')
+    })
+  })
+
+  it('パスワード変更失敗時にエラートーストが表示される', async () => {
+    mockChangePassword.mockResolvedValue({
+      success: false,
+      error: '現在のパスワードが正しくありません',
+    })
+    render(<PasswordForm {...defaultProps} />)
+
+    const currentPasswordInput = screen.getByLabelText('現在のパスワード')
+    fireEvent.change(currentPasswordInput, { target: { value: 'wrongpass' } })
+
+    const newPasswordInput = screen.getByLabelText('新しいパスワード')
+    fireEvent.change(newPasswordInput, { target: { value: 'newpass123' } })
+
+    const confirmPasswordInput = screen.getByLabelText('新しいパスワード（確認）')
+    fireEvent.change(confirmPasswordInput, { target: { value: 'newpass123' } })
+
+    const submitButton = screen.getByRole('button', { name: 'パスワードを変更' })
+    fireEvent.click(submitButton)
+
+    await waitFor(() => {
+      expect(showErrorToast).toHaveBeenCalledWith('パスワードの変更に失敗しました')
+    })
   })
 })

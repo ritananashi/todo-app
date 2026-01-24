@@ -1,10 +1,17 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { BasicInfoForm } from '@/components/profile/BasicInfoForm'
+import { showSuccessToast, showErrorToast } from '@/lib/toast'
 
 // Mock the updateProfile action
 const mockUpdateProfile = jest.fn()
 jest.mock('@/actions/profile', () => ({
   updateProfile: (...args: unknown[]) => mockUpdateProfile(...args),
+}))
+
+// Mock toast utilities
+jest.mock('@/lib/toast', () => ({
+  showSuccessToast: jest.fn(),
+  showErrorToast: jest.fn(),
 }))
 
 // Mock next-auth/react
@@ -26,6 +33,8 @@ describe('BasicInfoForm', () => {
     mockUpdateProfile.mockReset()
     mockSessionUpdate.mockReset()
     defaultProps.onSuccess.mockReset()
+    jest.mocked(showSuccessToast).mockReset()
+    jest.mocked(showErrorToast).mockReset()
   })
 
   it('フォームフィールドが正しくレンダリングされる', () => {
@@ -177,5 +186,35 @@ describe('BasicInfoForm', () => {
     })
 
     consoleSpy.mockRestore()
+  })
+
+  it('プロフィール更新成功時にトーストが表示される', async () => {
+    mockUpdateProfile.mockResolvedValue({ success: true })
+    render(<BasicInfoForm {...defaultProps} />)
+
+    const submitButton = screen.getByRole('button', { name: '保存' })
+    fireEvent.click(submitButton)
+
+    await waitFor(() => {
+      expect(showSuccessToast).toHaveBeenCalledWith('プロフィールを更新しました')
+    })
+  })
+
+  it('プロフィール更新失敗時にエラートーストが表示される', async () => {
+    mockUpdateProfile.mockResolvedValue({
+      success: false,
+      error: 'このメールアドレスは既に使用されています',
+    })
+    render(<BasicInfoForm {...defaultProps} />)
+
+    const emailInput = screen.getByLabelText('メールアドレス')
+    fireEvent.change(emailInput, { target: { value: 'existing@example.com' } })
+
+    const submitButton = screen.getByRole('button', { name: '保存' })
+    fireEvent.click(submitButton)
+
+    await waitFor(() => {
+      expect(showErrorToast).toHaveBeenCalledWith('プロフィールの更新に失敗しました')
+    })
   })
 })

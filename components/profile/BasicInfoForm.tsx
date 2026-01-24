@@ -16,6 +16,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
+import { showSuccessToast, showErrorToast } from '@/lib/toast'
 
 interface BasicInfoFormProps {
   initialName: string | null
@@ -39,6 +40,7 @@ export function BasicInfoForm({ initialName, initialEmail, onSuccess }: BasicInf
     setServerError(null)
     const result = await updateProfile(data)
     if (result.success) {
+      showSuccessToast('プロフィールを更新しました')
       // セッションを更新して、UIに即座に反映する
       // 失敗してもプロフィール自体は保存済みなので、onSuccessは呼び出す
       // メールはDBと同様に小文字で保存されているため、小文字で更新
@@ -53,6 +55,7 @@ export function BasicInfoForm({ initialName, initialEmail, onSuccess }: BasicInf
       }
       onSuccess()
     } else if (result.error) {
+      showErrorToast('プロフィールの更新に失敗しました')
       setServerError(result.error)
     }
   }

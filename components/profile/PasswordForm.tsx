@@ -15,6 +15,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
+import { showSuccessToast, showErrorToast } from '@/lib/toast'
 
 interface PasswordFormProps {
   onSuccess: () => void
@@ -36,9 +37,11 @@ export function PasswordForm({ onSuccess }: PasswordFormProps) {
     setServerError(null)
     const result = await changePassword(data)
     if (result.success) {
+      showSuccessToast('パスワードを変更しました')
       form.reset()
       onSuccess()
     } else if (result.error) {
+      showErrorToast('パスワードの変更に失敗しました')
       setServerError(result.error)
     }
   }
