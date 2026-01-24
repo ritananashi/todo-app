@@ -17,7 +17,9 @@ export async function signup(data: SignupInput): Promise<AuthResult> {
     return { success: false, error: parsed.error.issues[0].message }
   }
 
-  const { email, password } = parsed.data
+  const { password } = parsed.data
+  // メールアドレスを小文字に正規化（trimはスキーマで実行済み）
+  const email = parsed.data.email.toLowerCase()
 
   const existingUser = await prisma.user.findUnique({
     where: { email },
@@ -55,7 +57,9 @@ export async function login(data: LoginInput): Promise<AuthResult> {
     return { success: false, error: parsed.error.issues[0].message }
   }
 
-  const { email, password } = parsed.data
+  const { password } = parsed.data
+  // メールアドレスを小文字に正規化（trimはスキーマで実行済み）
+  const email = parsed.data.email.toLowerCase()
 
   try {
     await signIn('credentials', {

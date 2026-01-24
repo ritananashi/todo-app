@@ -107,13 +107,39 @@ describe('signup action', () => {
   it('should return error for invalid input', async () => {
     const result = await signup({
       email: 'invalid-email',
-      password: 'short',
-      confirmPassword: 'short',
+      password: 'short1',
+      confirmPassword: 'short1',
     })
 
     expect(result.success).toBe(false)
     expect(result.error).toBeDefined()
     expect(mockPrisma.user.findUnique).not.toHaveBeenCalled()
+  })
+
+  it('should normalize email to lowercase', async () => {
+    mockPrisma.user.findUnique.mockResolvedValue(null)
+    mockBcrypt.hash.mockResolvedValue('hashed_password' as never)
+    mockPrisma.user.create.mockResolvedValue({
+      id: 'user-1',
+      email: 'test@example.com',
+    })
+    mockSignIn.mockResolvedValue(undefined)
+
+    await expect(signup({
+      email: '  TEST@EXAMPLE.COM  ',
+      password: 'password123',
+      confirmPassword: 'password123',
+    })).rejects.toThrow('REDIRECT:/todos')
+
+    expect(mockPrisma.user.findUnique).toHaveBeenCalledWith({
+      where: { email: 'test@example.com' },
+    })
+    expect(mockPrisma.user.create).toHaveBeenCalledWith({
+      data: {
+        email: 'test@example.com',
+        password: 'hashed_password',
+      },
+    })
   })
 })
 
@@ -158,6 +184,21 @@ describe('login action', () => {
     expect(result.success).toBe(false)
     expect(result.error).toBeDefined()
     expect(mockSignIn).not.toHaveBeenCalled()
+  })
+
+  it('should normalize email to lowercase', async () => {
+    mockSignIn.mockResolvedValue(undefined)
+
+    await expect(login({
+      email: '  TEST@EXAMPLE.COM  ',
+      password: 'password123',
+    })).rejects.toThrow('REDIRECT:/todos')
+
+    expect(mockSignIn).toHaveBeenCalledWith('credentials', {
+      email: 'test@example.com',
+      password: 'password123',
+      redirect: false,
+    })
   })
 })
 

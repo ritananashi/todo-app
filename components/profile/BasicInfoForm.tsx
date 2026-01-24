@@ -41,8 +41,12 @@ export function BasicInfoForm({ initialName, initialEmail, onSuccess }: BasicInf
     if (result.success) {
       // セッションを更新して、UIに即座に反映する
       // 失敗してもプロフィール自体は保存済みなので、onSuccessは呼び出す
+      // メールはDBと同様に小文字で保存されているため、小文字で更新
       try {
-        await updateSession({ name: data.name, email: data.email })
+        await updateSession({
+          name: data.name,
+          email: data.email.trim().toLowerCase(),
+        })
       } catch {
         // セッション更新失敗はログのみ（プロフィール保存は成功している）
         console.error('セッションの更新に失敗しました')
