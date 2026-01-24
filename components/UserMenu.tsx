@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useSession } from 'next-auth/react'
 import { User, LogOut } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -18,9 +19,13 @@ interface UserMenuProps {
   email: string
 }
 
-export function UserMenu({ name, email }: UserMenuProps) {
+export function UserMenu({ name: initialName, email: initialEmail }: UserMenuProps) {
+  const { data: session } = useSession()
   const [isProfileDialogOpen, setIsProfileDialogOpen] = useState(false)
 
+  // セッションからリアルタイムの値を取得（なければ初期値を使用）
+  const name = session?.user?.name ?? initialName
+  const email = session?.user?.email ?? initialEmail
   const displayName = name && name.trim() !== '' ? name : email
 
   return (

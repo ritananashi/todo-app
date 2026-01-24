@@ -65,4 +65,22 @@ describe('ProfileDialog', () => {
 
     expect(defaultProps.onOpenChange).toHaveBeenCalledWith(false)
   })
+
+  it('基本情報の保存成功時にダイアログが閉じる', () => {
+    render(<ProfileDialog {...defaultProps} />)
+
+    const saveButton = screen.getByRole('button', { name: '保存' })
+    fireEvent.click(saveButton)
+
+    expect(defaultProps.onOpenChange).toHaveBeenCalledWith(false)
+  })
+
+  it('パスワード変更成功時にダイアログが閉じる', () => {
+    render(<ProfileDialog {...defaultProps} />)
+
+    const changePasswordButton = screen.getByRole('button', { name: 'パスワードを変更' })
+    fireEvent.click(changePasswordButton)
+
+    expect(defaultProps.onOpenChange).toHaveBeenCalledWith(false)
+  })
 })

@@ -1,6 +1,13 @@
 import { render, screen, fireEvent } from '@testing-library/react'
 import { UserMenu } from '@/components/UserMenu'
 
+// Mock next-auth/react
+jest.mock('next-auth/react', () => ({
+  useSession: () => ({
+    data: null, // セッションなし（propsの値を使用）
+  }),
+}))
+
 // Mock the ProfileDialog
 jest.mock('@/components/profile/ProfileDialog', () => ({
   ProfileDialog: ({ open }: { open: boolean }) => (

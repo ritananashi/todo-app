@@ -46,10 +46,19 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     }),
   ],
   callbacks: {
-    jwt({ token, user }) {
+    jwt({ token, user, trigger, session }) {
       if (user) {
         token.id = user.id
         token.name = user.name
+      }
+      // updateSession()からの更新を処理
+      if (trigger === 'update' && session) {
+        if (session.name !== undefined) {
+          token.name = session.name
+        }
+        if (session.email !== undefined) {
+          token.email = session.email
+        }
       }
       return token
     },

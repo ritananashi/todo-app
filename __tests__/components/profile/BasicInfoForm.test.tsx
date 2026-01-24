@@ -141,18 +141,41 @@ describe('BasicInfoForm', () => {
     expect(screen.getByLabelText('ユーザーネーム')).toHaveValue('')
   })
 
-  it('保存成功時にセッションが更新される', async () => {
+  it('保存成功時にセッションが更新データと共に更新される', async () => {
     mockUpdateProfile.mockResolvedValue({ success: true })
     render(<BasicInfoForm {...defaultProps} />)
 
     const nameInput = screen.getByLabelText('ユーザーネーム')
     fireEvent.change(nameInput, { target: { value: '新しい名前' } })
 
+    const emailInput = screen.getByLabelText('メールアドレス')
+    fireEvent.change(emailInput, { target: { value: 'new@example.com' } })
+
     const submitButton = screen.getByRole('button', { name: '保存' })
     fireEvent.click(submitButton)
 
     await waitFor(() => {
-      expect(mockSessionUpdate).toHaveBeenCalled()
+      expect(mockSessionUpdate).toHaveBeenCalledWith({
+        name: '新しい名前',
+        email: 'new@example.com',
+      })
     })
+  })
+
+  it('セッション更新が失敗してもonSuccessは呼ばれる', async () => {
+    mockUpdateProfile.mockResolvedValue({ success: true })
+    mockSessionUpdate.mockRejectedValue(new Error('Session update failed'))
+    const consoleSpy = jest.spyOn(console, 'error').mockImplementation()
+
+    render(<BasicInfoForm {...defaultProps} />)
+
+    const submitButton = screen.getByRole('button', { name: '保存' })
+    fireEvent.click(submitButton)
+
+    await waitFor(() => {
+      expect(defaultProps.onSuccess).toHaveBeenCalled()
+    })
+
+    consoleSpy.mockRestore()
   })
 })

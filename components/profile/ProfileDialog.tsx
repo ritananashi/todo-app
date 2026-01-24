@@ -24,11 +24,13 @@ export function ProfileDialog({
   initialEmail,
 }: ProfileDialogProps) {
   const handleBasicInfoSuccess = () => {
-    // 基本情報更新成功時の処理（必要に応じてトースト表示など）
+    // 基本情報更新成功時にダイアログを閉じる
+    onOpenChange(false)
   }
 
   const handlePasswordSuccess = () => {
-    // パスワード変更成功時の処理（必要に応じてトースト表示など）
+    // パスワード変更成功時にダイアログを閉じる
+    onOpenChange(false)
   }
 
   return (

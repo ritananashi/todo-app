@@ -40,7 +40,13 @@ export function BasicInfoForm({ initialName, initialEmail, onSuccess }: BasicInf
     const result = await updateProfile(data)
     if (result.success) {
       // セッションを更新して、UIに即座に反映する
-      await updateSession()
+      // 失敗してもプロフィール自体は保存済みなので、onSuccessは呼び出す
+      try {
+        await updateSession({ name: data.name, email: data.email })
+      } catch {
+        // セッション更新失敗はログのみ（プロフィール保存は成功している）
+        console.error('セッションの更新に失敗しました')
+      }
       onSuccess()
     } else if (result.error) {
       setServerError(result.error)
