@@ -27,13 +27,17 @@ export function TodoItem({ id, title, isCompleted, memo, priority, dueDate }: To
   const [deleteOpen, setDeleteOpen] = useState(false)
 
   const handleToggle = async () => {
-    const result = await toggleTodoComplete(id)
-    if (result.success && result.todo) {
-      const message = result.todo.isCompleted
-        ? 'タスクを完了にしました'
-        : 'タスクを未完了にしました'
-      showSuccessToast(message)
-    } else {
+    try {
+      const result = await toggleTodoComplete(id)
+      if (result.success && result.todo) {
+        const message = result.todo.isCompleted
+          ? 'タスクを完了にしました'
+          : 'タスクを未完了にしました'
+        showSuccessToast(message)
+      } else {
+        showErrorToast('状態の更新に失敗しました')
+      }
+    } catch {
       showErrorToast('状態の更新に失敗しました')
     }
   }
