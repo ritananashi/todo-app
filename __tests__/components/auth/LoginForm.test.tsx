@@ -1,5 +1,6 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { LoginForm } from '@/components/auth/LoginForm'
+import { showErrorToast } from '@/lib/toast'
 
 // Mock the login action
 const mockLogin = jest.fn()
@@ -7,9 +8,16 @@ jest.mock('@/actions/auth', () => ({
   login: (...args: unknown[]) => mockLogin(...args),
 }))
 
+// Mock toast utilities
+jest.mock('@/lib/toast', () => ({
+  showSuccessToast: jest.fn(),
+  showErrorToast: jest.fn(),
+}))
+
 describe('LoginForm', () => {
   beforeEach(() => {
     mockLogin.mockReset()
+    jest.mocked(showErrorToast).mockReset()
   })
 
   it('should render all form fields', () => {
@@ -95,5 +103,23 @@ describe('LoginForm', () => {
 
     const signupLink = screen.getByRole('link', { name: '新規登録' })
     expect(signupLink).toHaveAttribute('href', '/signup')
+  })
+
+  it('should show error toast when login fails', async () => {
+    mockLogin.mockResolvedValue({ success: false, error: 'メールアドレスまたはパスワードが正しくありません' })
+    render(<LoginForm />)
+
+    const emailInput = screen.getByLabelText('メールアドレス')
+    fireEvent.change(emailInput, { target: { value: 'test@example.com' } })
+
+    const passwordInput = screen.getByLabelText('パスワード')
+    fireEvent.change(passwordInput, { target: { value: 'wrongpassword' } })
+
+    const submitButton = screen.getByRole('button', { name: 'ログイン' })
+    fireEvent.click(submitButton)
+
+    await waitFor(() => {
+      expect(showErrorToast).toHaveBeenCalledWith('ログインに失敗しました')
+    })
   })
 })

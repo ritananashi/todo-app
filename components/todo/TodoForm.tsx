@@ -18,6 +18,7 @@ import {
 } from '@/components/ui/form'
 import { PrioritySelect } from './PrioritySelect'
 import { DueDatePicker } from './DueDatePicker'
+import { showSuccessToast, showErrorToast } from '@/lib/toast'
 
 interface TodoFormProps {
   onSuccess: () => void
@@ -40,9 +41,11 @@ export function TodoForm({ onSuccess }: TodoFormProps) {
     setServerError(null)
     const result = await createTodo(data)
     if (result.success) {
+      showSuccessToast('タスクを作成しました')
       form.reset()
       onSuccess()
     } else {
+      showErrorToast('タスクの作成に失敗しました')
       setServerError(result.error)
     }
   }

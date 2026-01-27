@@ -16,6 +16,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form'
+import { showErrorToast } from '@/lib/toast'
 
 export function LoginForm() {
   const [serverError, setServerError] = useState<string | null>(null)
@@ -32,6 +33,7 @@ export function LoginForm() {
     setServerError(null)
     const result = await login(data)
     if (!result.success && result.error) {
+      showErrorToast('ログインに失敗しました')
       setServerError(result.error)
     }
   }

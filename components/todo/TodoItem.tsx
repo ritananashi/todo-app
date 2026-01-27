@@ -9,6 +9,7 @@ import { TodoEditDialog } from './TodoEditDialog'
 import { TodoDeleteDialog } from './TodoDeleteDialog'
 import { priorityLabels, type Priority } from '@/lib/validations/todo'
 import { formatDueDate, getDueDateStatus } from '@/lib/date-utils'
+import { showSuccessToast, showErrorToast } from '@/lib/toast'
 
 interface TodoItemProps {
   id: string
@@ -26,7 +27,19 @@ export function TodoItem({ id, title, isCompleted, memo, priority, dueDate }: To
   const [deleteOpen, setDeleteOpen] = useState(false)
 
   const handleToggle = async () => {
-    await toggleTodoComplete(id)
+    try {
+      const result = await toggleTodoComplete(id)
+      if (result.success && result.todo) {
+        const message = result.todo.isCompleted
+          ? 'タスクを完了にしました'
+          : 'タスクを未完了にしました'
+        showSuccessToast(message)
+      } else {
+        showErrorToast('状態の更新に失敗しました')
+      }
+    } catch {
+      showErrorToast('状態の更新に失敗しました')
+    }
   }
 
   return (
